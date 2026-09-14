@@ -136,6 +136,17 @@ type PolicyRouting struct {
 	FallbackURL   string `json:"fallbackUrl,omitempty"`
 	FallbackModel string `json:"fallbackModel,omitempty"`
 	FallbackKey   string `json:"fallbackKey,omitempty"`
+	// Load-aware worker choice (feature "routing_load_aware"): the leader's
+	// picker scores a worker as in-flight + queue depth + KVWeight × (KV cache
+	// used / 100), from the workers' own heartbeat samples — a full cache
+	// counts as KVWeight extra requests; 0 = in-flight only (the old order).
+	// A worker at or above KVSaturationPct is placed behind every worker
+	// with headroom and receives new requests only when none has any
+	// (0 = off). PrefixAffinity pins a prompt prefix to the worker that last
+	// served it (its prefix cache), a bounded table with the sticky TTL.
+	KVWeight        float64 `json:"kvWeight,omitempty"`
+	KVSaturationPct int     `json:"kvSaturationPct,omitempty"`
+	PrefixAffinity  bool    `json:"prefixAffinity,omitempty"`
 }
 
 // PolicyLogging switches the leader's access log; nil = unchanged.

@@ -5,8 +5,9 @@ The typed contract between an **opod** leader (`opod-io/opod-core`, Apache-2.0) 
 | Package | What |
 |---|---|
 | `adminapi` | The JSON shapes a leader serves on `/admin/v1`, `/loadz` and in the mounted auth / policy snapshot files, plus the frozen route list and feature names. The leader marshals these types itself, so a field here is a field on the wire. |
+| `catalog` | The model catalog: one YAML per model, embedded (`catalog.FS`, `Names()`, `Read()`) and its schema (`Entry`). The leader and the control plane both read this one set; parsing stays with the importer's YAML library (this module stays stdlib-only). Schema in `catalog/README.md`. |
 
-Planned here next: `catalog/` (the model catalog schema and YAMLs) and `connect/` (the client snippet templates `opod connect` and the console share).
+Planned here next: `connect/` (the client snippet templates `opod connect` and the console share).
 
 Rules: additive only within a contract version (`adminapi.ContractVersion`); json tags are the wire; nothing here imports anything but the standard library.
 
