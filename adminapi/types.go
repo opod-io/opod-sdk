@@ -63,23 +63,23 @@ type Load struct {
 
 // UsageData is one usage fact: a request the leader served.
 type UsageData struct {
-	APIKeyID         string  `json:"api_key_id"`
+	APIKeyID string `json:"api_key_id"`
 	// TTFTMS is the time to the first usable byte of a STREAMED answer
 	// (R15.13). 0 on a non-streamed response, where the whole answer arrives
 	// at once and latency_ms is the only honest number.
-	TTFTMS int `json:"ttft_ms,omitempty"`
-	UserID           string  `json:"user_id"`
-	Model            string  `json:"model"`
-	Protocol         string  `json:"protocol"`
-	PromptTokens     int     `json:"prompt_tokens"`
-	CompletionTokens int     `json:"completion_tokens"`
-	LatencyMS        int     `json:"latency_ms"`
-	Outcome          string  `json:"outcome"`
+	TTFTMS           int    `json:"ttft_ms,omitempty"`
+	UserID           string `json:"user_id"`
+	Model            string `json:"model"`
+	Protocol         string `json:"protocol"`
+	PromptTokens     int    `json:"prompt_tokens"`
+	CompletionTokens int    `json:"completion_tokens"`
+	LatencyMS        int    `json:"latency_ms"`
+	Outcome          string `json:"outcome"`
 	// CostUSD is DEPRECATED and always 0: rating and showback are out of this
 	// product (ADR-003). It is kept for one additive tag so a client reading it
 	// does not break, and will be removed in the next breaking release.
-	CostUSD          float64 `json:"cost_usd"`
-	NodeID           string  `json:"node_id"` // worker that served it ("" = answered locally / never dispatched)
+	CostUSD float64 `json:"cost_usd"`
+	NodeID  string  `json:"node_id"` // worker that served it ("" = answered locally / never dispatched)
 }
 
 // UsageEvent is one row of GET /admin/v1/usage/stream.
@@ -159,6 +159,25 @@ type PolicyRouting struct {
 	KVWeight        float64 `json:"kvWeight,omitempty"`
 	KVSaturationPct int     `json:"kvSaturationPct,omitempty"`
 	PrefixAffinity  bool    `json:"prefixAffinity,omitempty"`
+	// Revisions splits traffic between plan revisions (feature
+	// "routing_weights", ROADMAP R15.17): each worker registers the plan
+	// revision it was started for, and the picker chooses a revision group by
+	// weight before it chooses a worker inside it. Empty = no split, which is
+	// every endpoint that is not mid-canary.
+	//
+	// A weight is a share, not a percentage: the leader normalises whatever it
+	// is given, so [{1, 9}, {2, 1}] is 10 % on revision 2 and so is
+	// [{1, 90}, {2, 10}]. A group with no live worker is skipped and its share
+	// goes to the others — a canary whose only pod is restarting must not
+	// black-hole its share of the traffic.
+	Revisions []RevisionWeight `json:"revisions,omitempty"`
+}
+
+// RevisionWeight is one plan revision's share of an endpoint's traffic
+// (R15.17). Revision matches what a worker registers as its plan revision.
+type RevisionWeight struct {
+	Revision int `json:"revision"`
+	Weight   int `json:"weight"`
 }
 
 // PolicyLogging switches the leader's access log; nil = unchanged.
