@@ -54,11 +54,20 @@ type Load struct {
 	PrefixHitPct float64 `json:"prefix_hit_pct"`
 	Workers      int     `json:"workers"`
 	Reporting    int     `json:"reporting"`
+	// Time to the first token a client can use, over the last minute
+	// (R15.13; feature "ttft"). A leader that has streamed nothing recently
+	// leaves both zero — zero is "not measured", never "instant".
+	TTFTP50Ms int64 `json:"ttft_p50_ms,omitempty"`
+	TTFTP95Ms int64 `json:"ttft_p95_ms,omitempty"`
 }
 
 // UsageData is one usage fact: a request the leader served.
 type UsageData struct {
 	APIKeyID         string  `json:"api_key_id"`
+	// TTFTMS is the time to the first usable byte of a STREAMED answer
+	// (R15.13). 0 on a non-streamed response, where the whole answer arrives
+	// at once and latency_ms is the only honest number.
+	TTFTMS int `json:"ttft_ms,omitempty"`
 	UserID           string  `json:"user_id"`
 	Model            string  `json:"model"`
 	Protocol         string  `json:"protocol"`
@@ -66,6 +75,9 @@ type UsageData struct {
 	CompletionTokens int     `json:"completion_tokens"`
 	LatencyMS        int     `json:"latency_ms"`
 	Outcome          string  `json:"outcome"`
+	// CostUSD is DEPRECATED and always 0: rating and showback are out of this
+	// product (ADR-003). It is kept for one additive tag so a client reading it
+	// does not break, and will be removed in the next breaking release.
 	CostUSD          float64 `json:"cost_usd"`
 	NodeID           string  `json:"node_id"` // worker that served it ("" = answered locally / never dispatched)
 }
