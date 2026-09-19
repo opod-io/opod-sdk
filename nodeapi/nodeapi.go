@@ -238,6 +238,12 @@ type LoadAdapterRequest struct {
 	Base   string `json:"base"` // the resident model the adapter attaches to
 	Name   string `json:"name"`
 	Source string `json:"source"`
+	// Rank is the adapter's own r, when the caller knows it — the same field
+	// Adapter carries at start. An engine's LoRA slots are sized when it
+	// starts, so a worker told the rank refuses (409) an adapter its running
+	// engine cannot take, naming both numbers, instead of relaying the
+	// engine's error. Zero = not stated; the key is then omitted.
+	Rank int `json:"rank,omitempty"`
 }
 
 // UnloadAdapterRequest is the body of PathAdaptersUnload.
