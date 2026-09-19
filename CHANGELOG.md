@@ -39,6 +39,9 @@ to a golden file that reproduces the body as the binary already wrote it.
     `loaded_models` are in memory, from an engine that keeps installed models and loads on request; a
     pointer, because an empty list ("nothing is in memory") is said and only "not stated" is omitted.
     `loaded_models` is documented as what it has always been on such an engine: what the worker answers for.
+  - `Heartbeat.LoadedModels`: the comment now says what `null` means to a leader — no report (the engine
+    did not answer the worker): liveness advances, nothing recorded about the node's models changes
+    (feature `heartbeat_no_report`) — as opposed to `[]`, nothing is loaded. No wire change; goldens untouched.
   - Tests: a golden file per body (`nodeapi/testdata/`), round trip of every golden, unknown keys ignored
     on decode, omitted-versus-zero per field, `hardware_json` byte-exact.
 

@@ -170,7 +170,12 @@ type Heartbeat struct {
 	// asked to load (an adapter as "<base>:<name>"): what the engine holds in
 	// memory, and — for an engine that keeps installed models and loads one on
 	// its first request (Ollama) — what it has installed. The leader routes by
-	// it. Always sent; null when the engine did not answer in time.
+	// it. Always sent, and null and [] are different words: null = the engine
+	// did not answer the worker in time, so this heartbeat carries NO REPORT —
+	// a leader (feature "heartbeat_no_report") advances the node's liveness
+	// and changes nothing it recorded about what the node serves; [] = the
+	// engine answered and holds nothing. That is why the key is not omitempty,
+	// and why a writer must never turn a failed engine query into [].
 	LoadedModels []string `json:"loaded_models"`
 	BootID       string   `json:"boot_id"`
 	// ResidentModels (feature "resident_models") is which of LoadedModels are
