@@ -29,6 +29,10 @@ to a golden file that reproduces the body as the binary already wrote it.
   status words are constants.
   - `LoadAdapterRequest.Rank` (`rank`, omitted when zero): the adapter's rank travels on the live add as
     it does in `OPOD_ADAPTERS`, so a worker can refuse an adapter its running engine was not started for.
+  - `PathModelUnload` (`/v1/model/unload`, feature `worker_unload`) with `UnloadModelRequest` — the load
+    request's source fields without `file` and `pin` — and `UnloadModelResponse`: `unloaded`, `noop`
+    (`StatusNoop`; not resident, the call is idempotent) or, with 501, `unsupported` (an engine that cannot
+    unload and that the worker did not start). 409 and 502 are plain text, like every other worker error.
   - Tests: a golden file per body (`nodeapi/testdata/`), round trip of every golden, unknown keys ignored
     on decode, omitted-versus-zero per field, `hardware_json` byte-exact.
 

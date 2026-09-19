@@ -5,7 +5,7 @@ The typed contract between an **opod** leader (`opod-io/opod-core`, Apache-2.0) 
 | Package | What |
 |---|---|
 | `adminapi` | The JSON shapes a leader serves on `/admin/v1`, `/loadz` and in the mounted auth / policy snapshot files, plus the frozen route list and feature names. The leader marshals these types itself, so a field here is a field on the wire. Also the **environment contract** (`env.go`): every variable a manager may set on a leader or worker process, as data — `Env()`, `Lookup()`, one `Env*` constant per name, and `Retired()` for variables the binary stopped reading. |
-| `nodeapi` | The **node protocol**: the JSON a worker and its leader exchange — register and heartbeat (worker → leader), model load, sleep / resume, LoRA adapters and supervised helper processes (leader → worker) — with the paths as constants. Every type is held to a golden file that reproduces the body as the binary wrote it before the type existed. |
+| `nodeapi` | The **node protocol**: the JSON a worker and its leader exchange — register and heartbeat (worker → leader), model load and unload, sleep / resume, LoRA adapters and supervised helper processes (leader → worker) — with the paths as constants. Every type is held to a golden file that reproduces the body as the binary wrote it before the type existed. |
 | `catalog` | The model catalog: one YAML per model, embedded (`catalog.FS`, `Names()`, `Read()`) and its schema (`Entry`). The leader and the control plane both read this one set; parsing stays with the importer's YAML library (this module stays stdlib-only). Schema in `catalog/README.md`. |
 
 Planned here next: `connect/` (the client snippet templates `opod connect` and the console share).

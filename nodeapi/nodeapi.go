@@ -10,7 +10,8 @@
 //     sleeps, and an engine load sample. Placement is what heartbeats report,
 //     never what a request claimed.
 //   - leader → worker, on the worker's own listener: make a model resident
-//     (PathModelLoad), put the engine to sleep and wake it (PathModelSleep,
+//     (PathModelLoad) and let it go again (PathModelUnload), put the engine to
+//     sleep and wake it (PathModelSleep,
 //     PathModelResume), attach and detach LoRA adapters (PathAdapters*), and
 //     run helper processes — the llama.cpp RPC parts of a sharded model
 //     (PathProcess*).
@@ -25,8 +26,9 @@
 // value types — which is what this package freezes and its golden files hold.
 //
 // Errors. A worker answers an error with the status code and a plain-text
-// body — not JSON — with two exceptions that are typed here: StartProcessError
-// (502) and the SleepResponse of an engine with no sleep mode (501). The
+// body — not JSON — with three exceptions that are typed here:
+// StartProcessError (502), the SleepResponse of an engine with no sleep mode
+// (501) and the UnloadModelResponse of an engine that cannot unload (501). The
 // leader answers its own errors in the {"error": {"message", "type"}} shape of
 // its /admin/v1 surface.
 //
@@ -50,6 +52,7 @@ const (
 // Paths on the worker's listener (leader → worker).
 const (
 	PathModelLoad      = "/v1/model/load"
+	PathModelUnload    = "/v1/model/unload" // POST UnloadModelRequest → UnloadModelResponse (feature "worker_unload")
 	PathModelSleep     = "/v1/model/sleep"  // POST, no body → SleepResponse
 	PathModelResume    = "/v1/model/resume" // POST, no body → SleepResponse
 	PathAdapters       = "/v1/adapters"     // GET → []HeldAdapter
@@ -209,6 +212,36 @@ type LoadModelResponse struct {
 	Model  string `json:"model"`  // the engine-native name
 }
 
+// UnloadModelRequest is the body of PathModelUnload (feature
+// "worker_unload"): LoadModelRequest's source fields without File and Pin,
+// so the worker resolves the engine-native name exactly as the load did.
+// Every key is sent, empty or not.
+type UnloadModelRequest struct {
+	ID         string `json:"id"` // required: the catalog id the model was loaded under
+	OllamaName string `json:"ollama_name"`
+	Repo       string `json:"repo"`
+	Path       string `json:"path"`
+}
+
+// UnloadModelResponse answers PathModelUnload. The call is idempotent:
+//
+//   - 200 StatusUnloaded — the model left the engine: the engine unloaded it,
+//     or the worker stopped the engine process it had launched for it. Model
+//     is the engine-native name. The model is absent from the next heartbeat.
+//   - 200 StatusNoop — it was not resident; Reason says so.
+//   - 501 StatusUnsupported — the engine cannot unload a model and the worker
+//     did not start the engine; Engine and Reason are set, Model is not.
+//
+// 409 (plain text) means something else on the worker holds the model — a
+// shard part of it runs there, or adapters of that base are loaded — and
+// names it; 502 (plain text) means the engine failed.
+type UnloadModelResponse struct {
+	Status string `json:"status"` // StatusUnloaded | StatusNoop | StatusUnsupported
+	Model  string `json:"model,omitempty"`
+	Engine string `json:"engine,omitempty"`
+	Reason string `json:"reason,omitempty"`
+}
+
 // SleepResponse answers PathModelSleep and PathModelResume (both take no
 // body). An engine without a sleep mode answers 501 with StatusUnsupported
 // and a Reason, never a pretended "sleeping"; a leader passes the worker's
@@ -335,10 +368,11 @@ const (
 	StatusRegistered  = "registered"  // RegisterResponse
 	StatusOK          = "ok"          // HeartbeatResponse
 	StatusReady       = "ready"       // LoadModelResponse, AdapterResponse (load)
-	StatusUnloaded    = "unloaded"    // AdapterResponse (unload)
+	StatusUnloaded    = "unloaded"    // AdapterResponse (unload), UnloadModelResponse
+	StatusNoop        = "noop"        // UnloadModelResponse: nothing to do
 	StatusSleeping    = "sleeping"    // SleepResponse
 	StatusResumed     = "resumed"     // SleepResponse
-	StatusUnsupported = "unsupported" // SleepResponse, with 501
+	StatusUnsupported = "unsupported" // SleepResponse and UnloadModelResponse, with 501
 
 	ProcessStarting  = "starting"
 	ProcessRunning   = "running"
