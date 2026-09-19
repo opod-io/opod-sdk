@@ -12,5 +12,8 @@
     "qwen2.5-0.5b-gguf",
     "qwen2.5-0.5b-gguf:support"
   ],
+  "resident_models": [
+    "qwen2.5-0.5b-gguf"
+  ],
   "sleeping": true
 }

@@ -27,7 +27,7 @@ var (
 	capsFull = Capabilities{
 		Hostname: "node-a", OS: "linux", Arch: "amd64", CPUCores: 32, RAMGB: 128,
 		GPUs: []GPU{{Name: "NVIDIA A100-SXM4-80GB", VRAMGB: 79}, {Name: "NVIDIA A100-SXM4-80GB", VRAMGB: 79}},
-		Role: RoleDecode, PlanRevision: 7,
+		Role: RoleDecode, PlanRevision: 7, Engine: "vllm",
 	}
 	capsMinimal = Capabilities{Hostname: "node-b", OS: "linux", Arch: "amd64", CPUCores: 8, RAMGB: 16}
 	startedAt   = time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
@@ -61,7 +61,7 @@ func wireCases(t *testing.T) []wireCase {
 		{"capabilities_minimal", capsMinimal, &Capabilities{}},
 		{"heartbeat", Heartbeat{
 			ID: "n_worker-0", LoadedModels: []string{"qwen2.5-0.5b-gguf", "qwen2.5-0.5b-gguf:support"},
-			BootID: "0123456789abcdef", Sleeping: true,
+			BootID: "0123456789abcdef", Sleeping: true, ResidentModels: &[]string{"qwen2.5-0.5b-gguf"},
 			Load: &EngineLoad{KVUsedPct: 62.5, QueueDepth: 3, TokensPerSec: 148.25, PrefixHitPct: 41, SampledAt: 1789732800},
 		}, &Heartbeat{}},
 		{"heartbeat_minimal", Heartbeat{ID: "n_worker-0", BootID: "0123456789abcdef"}, &Heartbeat{}},
@@ -278,6 +278,9 @@ func TestOmittedVersusZero(t *testing.T) {
 		{Heartbeat{}, "boot_id", true},
 		{Heartbeat{}, "sleeping", false},
 		{Heartbeat{}, "load", false},
+		{Heartbeat{}, "resident_models", false},
+		{Heartbeat{ResidentModels: &[]string{}}, "resident_models", true}, // nothing in memory is said, not omitted
+		{Capabilities{}, "Engine", false},
 		{RegisterRequest{}, "boot_id", true},
 		{RegisterRequest{}, "hardware_json", true},
 		{Capabilities{}, "GPUs", true},

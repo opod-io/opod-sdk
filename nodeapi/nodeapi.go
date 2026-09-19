@@ -142,6 +142,13 @@ type Capabilities struct {
 	// worker process was started for; the leader groups workers by it to split
 	// traffic between revisions. Zero = not stated.
 	PlanRevision int `json:"PlanRevision,omitempty"`
+	// Engine (feature "worker_engine") is the canonical id of the engine
+	// driver the worker serves through — an id of adminapi's engine list
+	// ("vllm", "sglang", "llamacpp", "ollama", "mlx"). It tells the leader what
+	// a model load does on that worker: an engine that serves one model per
+	// process stops the model it serves to start another. Empty = a worker
+	// that predates the field.
+	Engine string `json:"Engine,omitempty"`
 }
 
 // GPU is one detected device.
@@ -159,11 +166,18 @@ const (
 // Heartbeat is the body of PathHeartbeat.
 type Heartbeat struct {
 	ID string `json:"id"`
-	// LoadedModels is what the engine holds right now, as the ids the worker
-	// was asked to load (an adapter as "<base>:<name>"). Always sent; null
-	// when the engine did not answer in time.
+	// LoadedModels is what the worker answers a request for, as the ids it was
+	// asked to load (an adapter as "<base>:<name>"): what the engine holds in
+	// memory, and — for an engine that keeps installed models and loads one on
+	// its first request (Ollama) — what it has installed. The leader routes by
+	// it. Always sent; null when the engine did not answer in time.
 	LoadedModels []string `json:"loaded_models"`
 	BootID       string   `json:"boot_id"`
+	// ResidentModels (feature "resident_models") is which of LoadedModels are
+	// in the engine's memory right now. Only an engine that can tell the two
+	// apart sends it, and then always — a pointer to an empty list means
+	// "nothing is in memory". nil = not stated: everything loaded is resident.
+	ResidentModels *[]string `json:"resident_models,omitempty"`
 	// Sleeping is sent only when true (feature "worker_sleep"): the engine
 	// dropped its working set, its models are resident but not routable.
 	Sleeping bool `json:"sleeping,omitempty"`

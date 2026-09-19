@@ -33,6 +33,12 @@ to a golden file that reproduces the body as the binary already wrote it.
     request's source fields without `file` and `pin` — and `UnloadModelResponse`: `unloaded`, `noop`
     (`StatusNoop`; not resident, the call is idempotent) or, with 501, `unsupported` (an engine that cannot
     unload and that the worker did not start). 409 and 502 are plain text, like every other worker error.
+  - `Capabilities.Engine` (`Engine` inside `hardware_json`, omitted when empty, appended after the existing
+    keys; feature `worker_engine`): the canonical id of the worker's engine driver, so a leader knows what a
+    load does there. `Heartbeat.ResidentModels` (`resident_models`, feature of the same name): which of
+    `loaded_models` are in memory, from an engine that keeps installed models and loads on request; a
+    pointer, because an empty list ("nothing is in memory") is said and only "not stated" is omitted.
+    `loaded_models` is documented as what it has always been on such an engine: what the worker answers for.
   - Tests: a golden file per body (`nodeapi/testdata/`), round trip of every golden, unknown keys ignored
     on decode, omitted-versus-zero per field, `hardware_json` byte-exact.
 
