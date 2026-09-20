@@ -59,6 +59,14 @@ type Load struct {
 	// leaves both zero — zero is "not measured", never "instant".
 	TTFTP50Ms int64 `json:"ttft_p50_ms,omitempty"`
 	TTFTP95Ms int64 `json:"ttft_p95_ms,omitempty"`
+	// EnginesUnhealthy is how many of the workers counted above are holding a
+	// card while their engine is NOT serving — crash-looping or stopped
+	// (feature "engine_liveness"). They heartbeat like any other worker, so
+	// anything counting workers counts them as capacity; they are not, and a
+	// scaler that believes the count scales out too late or not at all.
+	// EngineIssue is the worst one's own last word, for a human.
+	EnginesUnhealthy int    `json:"engines_unhealthy,omitempty"`
+	EngineIssue      string `json:"engine_issue,omitempty"`
 }
 
 // UsageData is one usage fact: a request the leader served.
