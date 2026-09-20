@@ -189,6 +189,53 @@ type Heartbeat struct {
 	// Load is sent only when the engine reported a sample (feature
 	// "load_signals").
 	Load *EngineLoad `json:"load,omitempty"`
+	// Engine (feature "engine_liveness") is what the worker's engine process is
+	// doing, as the worker sees it. A pod can be Running while the engine
+	// inside it crash-loops, restarts on a bad flag, or never finishes loading
+	// — and to everything counting workers that pod is capacity. It is not:
+	// the leader routes nothing to it, and an autoscaler that counts it scales
+	// out too late or not at all.
+	//
+	// Sent on every heartbeat by a worker that has the feature. nil = an older
+	// worker that cannot say, which a reader must treat as "no statement",
+	// never as healthy.
+	Engine *EngineState `json:"engine,omitempty"`
+}
+
+// Engine states (EngineState.State).
+const (
+	// EngineServing: the process is up and answering the worker's probes.
+	EngineServing = "serving"
+	// EngineStarting: launched, not answering yet — loading weights, building
+	// CUDA graphs, warming up. Normal for minutes on a large model.
+	EngineStarting = "starting"
+	// EngineCrashLooping: the process has exited and been restarted more than
+	// once in this worker's lifetime. The pod stays Running; the engine does
+	// not stay up.
+	EngineCrashLooping = "crash-looping"
+	// EngineStopped: exited and not restarting — a fatal flag, a missing file,
+	// an unsupported model. It will not come back without a change.
+	EngineStopped = "stopped"
+)
+
+// EngineState is what the worker can say about the process it launched. The
+// worker is the only party that can: the leader sees a heartbeat, Kubernetes
+// sees a container that is Running, and neither sees an engine that came up,
+// failed its first request and was restarted four times.
+type EngineState struct {
+	// State is one of the Engine* constants above. An unknown value from a
+	// newer worker must be read as "no statement", not as a failure.
+	State string `json:"state"`
+	// Restarts is how many times the worker has relaunched the engine since
+	// the worker itself started. 0 on a healthy one.
+	Restarts int `json:"restarts,omitempty"`
+	// Since is when the engine entered this state (RFC 3339). A "starting"
+	// that has not moved in twenty minutes is a different problem from one
+	// that started twenty seconds ago.
+	Since string `json:"since,omitempty"`
+	// Detail is the worker's own last word on why — an exit status, the first
+	// line of the engine's error. Free text, for a human and for an alert.
+	Detail string `json:"detail,omitempty"`
 }
 
 // HeartbeatResponse answers PathHeartbeat. 404 instead means "unknown node —

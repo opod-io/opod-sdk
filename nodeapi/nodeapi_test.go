@@ -361,3 +361,44 @@ func TestEveryGoldenHasACase(t *testing.T) {
 		t.Errorf("case %s has no golden file", name)
 	}
 }
+
+// A pod can be Running while the engine inside it crash-loops. Everything that
+// counts workers counts that pod as capacity; it is not. The field is additive
+// and a reader that does not know it must be unharmed.
+func TestEngineStateIsAdditiveAndOptional(t *testing.T) {
+	// An older worker sends no engine block at all.
+	var old Heartbeat
+	if err := json.Unmarshal([]byte(`{"id":"n_w0","loaded_models":["m"],"boot_id":"b"}`), &old); err != nil {
+		t.Fatal(err)
+	}
+	if old.Engine != nil {
+		t.Fatal("no statement must stay no statement, never a healthy one")
+	}
+
+	hb := Heartbeat{ID: "n_w0", LoadedModels: []string{"m"}, BootID: "b",
+		Engine: &EngineState{State: EngineCrashLooping, Restarts: 4, Since: "2026-09-20T09:00:00Z", Detail: "exit status 1: CUDA error"}}
+	b, err := json.Marshal(hb)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var back Heartbeat
+	if err := json.Unmarshal(b, &back); err != nil {
+		t.Fatal(err)
+	}
+	if back.Engine == nil || back.Engine.State != EngineCrashLooping || back.Engine.Restarts != 4 {
+		t.Fatalf("round trip lost the engine state: %s", b)
+	}
+	// It is omitted when absent, so an older leader sees exactly what it saw.
+	if bytes.Contains(mustJSON(t, Heartbeat{ID: "n", LoadedModels: []string{}, BootID: "b"}), []byte("engine")) {
+		t.Error("a worker with nothing to say must not send the key")
+	}
+}
+
+func mustJSON(t *testing.T, v any) []byte {
+	t.Helper()
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
