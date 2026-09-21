@@ -140,6 +140,14 @@ type SnapshotKey struct {
 	TPMLimit      int      `json:"tpmLimit,omitempty"`
 	AllowedModels []string `json:"allowedModels,omitempty"`
 	ExpiresAt     string   `json:"expiresAt,omitempty"` // RFC 3339
+	// QuotaDailyTokens is the key's ceiling for one UTC day, in prompt +
+	// completion tokens; 0 = no quota. The leader has enforced it since before
+	// this snapshot existed (store.APIKey.QuotaDailyTokens, QuotaMiddleware),
+	// and its gateway replicas enforce it across doors from the spend snapshot
+	// — with the lag bound ADR-063 publishes. Until this field a MANAGED leader
+	// could not have one at all: every key a control plane minted arrived with
+	// no quota, so the middleware was inert and the promise was unreachable.
+	QuotaDailyTokens int64 `json:"quotaDailyTokens,omitempty"`
 }
 
 // PolicySnapshot is the policy file a manager mounts (OPOD_POLICY_FILE).
