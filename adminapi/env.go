@@ -17,7 +17,11 @@ package adminapi
 //   - Configuration overrides. The opod binary also accepts an OPOD_*
 //     spelling of most config.yaml keys (listen address, data directory, TLS
 //     pair, join token …), and the container images' entrypoint reads a few
-//     launch variables of its own (role, leader URL, the model to load).
+//     launch variables of its own (role, leader URL). The model to LOAD used
+//     to be one of those; since feature self_load it is contract data, because
+//     the worker reads it and loads in-process (the entrypoint used to POST
+//     the worker's own API with a bearer token, which no HMAC-only worker
+//     would accept).
 //     The leader does not declare those as contract data today, so they are
 //     not listed here: this table is what the leader declares, not what
 //     someone found by reading its source.
@@ -58,6 +62,9 @@ const (
 	EnvLeaderCA      = "OPOD_LEADER_CA"
 	EnvVRAMBudgetGB  = "OPOD_VRAM_BUDGET_GB"
 	EnvGPUIndex      = "OPOD_GPU_INDEX"
+	EnvLoadModel     = "OPOD_LOAD_MODEL"
+	EnvLoadRepo      = "OPOD_LOAD_REPO"
+	EnvLoadFile      = "OPOD_LOAD_FILE"
 	// both
 	EnvCatalogDir           = "OPOD_CATALOG_DIR"
 	EnvCatalogPubKey        = "OPOD_CATALOG_PUBKEY"
@@ -119,6 +126,9 @@ var envTable = []EnvVar{
 	{Name: EnvLeaderCA, Side: SideWorker, Since: "tls_listener", Doc: `PEM certificate the worker trusts for a TLS leader (exactly that one)`},
 	{Name: EnvVRAMBudgetGB, Side: SideWorker, Since: "vram_budget", Doc: `the slice of the card this worker may use (shared placement); read by the engine launch`},
 	{Name: EnvGPUIndex, Side: SideWorker, Since: "vram_budget", Doc: `the device index the worker was pinned to (informational; the engine sees CUDA_VISIBLE_DEVICES & co)`},
+	{Name: EnvLoadModel, Side: SideWorker, Since: "self_load", Doc: `the catalog id this worker loads once its engine answers; repo and file come from the catalog`},
+	{Name: EnvLoadRepo, Side: SideWorker, Since: "self_load", Doc: `override the catalog's repo for that load`},
+	{Name: EnvLoadFile, Side: SideWorker, Since: "self_load", Doc: `override the catalog's file (the GGUF within the repo) for that load`},
 	// both
 	{Name: EnvCatalogDir, Side: SideBoth, Doc: `a catalog directory that overrides the bundled entries (beaten only by ~/.opod/catalog)`},
 	{Name: EnvCatalogPubKey, Side: SideBoth, Since: "v0.3.0", Doc: `a minisign public key (the base64 line, or a file holding one): a catalog file in a directory that has a <file>.minisig beside it must verify against it, and a signature that does not is always a refusal. The embedded catalog is never checked. Empty = signatures are ignored`},
