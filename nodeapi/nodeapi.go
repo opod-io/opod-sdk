@@ -25,6 +25,22 @@
 // What a receiver does depend on is the key SET, omitted-versus-present, and
 // value types — which is what this package freezes and its golden files hold.
 //
+// Worker identity, the second form (R9.6, ADR-005's P1). A worker may instead
+// be identified by a CLIENT CERTIFICATE on the TLS handshake of its calls to
+// the leader, which authenticates the PROCESS rather than proving it holds a
+// shared secret. The leader reads the node id out of the certificate's SPIFFE
+// URI SAN — "spiffe://<trust domain>/opod/node/<id>", the one SAN shape a
+// leader will read an identity from — and a certificate that names a different
+// node from the body's "id" is refused rather than believed. Nothing moves in
+// this package's types: the identity is in the handshake, and the mode
+// (off | allow | require), the CA and the revoked serials travel in the
+// manager's auth snapshot (adminapi.AuthSnapshot.NodeMTLS, NodeCertCA,
+// RevokedCerts) because they have to be changeable on a serving leader.
+//
+// HMAC stays the GA path and the only path for the leader→worker direction,
+// and a leader in "allow" accepts both, so a fleet can move one endpoint at a
+// time.
+//
 // Errors. A worker answers an error with the status code and a plain-text
 // body — not JSON — with three exceptions that are typed here:
 // StartProcessError (502), the SleepResponse of an engine with no sleep mode

@@ -128,6 +128,29 @@ type AuthSnapshot struct {
 	Revision    string        `json:"revision"`
 	RequireKeys bool          `json:"requireKeys"`
 	Keys        []SnapshotKey `json:"keys"`
+	// NodeMTLS is how the leader treats a worker's client certificate on the
+	// join path (register and heartbeat): "" or "off" = certificates are
+	// ignored and a join token is the credential · "allow" = a worker that
+	// presents a certificate this leader's node CA signed is authenticated by
+	// it, and one that does not falls back to its token · "require" = a join
+	// or heartbeat without such a certificate is refused.
+	//
+	// It lives in the AUTH snapshot and not in the environment on purpose: a
+	// fleet moves to mTLS one endpoint at a time, and the mode has to be able
+	// to go back to "allow" without restarting a leader that is serving
+	// (ADR-005's P1 — HMAC and join tokens stay the GA path).
+	NodeMTLS string `json:"nodeMtls,omitempty"`
+	// NodeCertCA is the PEM (one or more certificates) a leader verifies a
+	// worker's client certificate against. The snapshot carries it rather than
+	// a file path because it is not a secret — it is the public half — and an
+	// operator rotating the CA should not need a pod restart.
+	NodeCertCA string `json:"nodeCertCa,omitempty"`
+	// RevokedCerts are certificate serial numbers this leader must refuse even
+	// though its CA signed them, as lowercase hex without separators. A
+	// revocation has to reach the leader through the snapshot it already
+	// watches: nothing else is on the request path (ADR-001), and a CRL
+	// endpoint would put the manager there.
+	RevokedCerts []string `json:"revokedCerts,omitempty"`
 }
 
 // SnapshotKey is one API key in the auth snapshot (hash, never plaintext).
