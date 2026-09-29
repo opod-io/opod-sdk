@@ -2,7 +2,7 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
-## v0.3.0 (unreleased)
+## v0.3.0 (2026-09-29)
 
 - **Prefix-cache block events (feature `kv_block_events`).** `nodeapi.Heartbeat.KVBlocks` carries what changed
   in a worker engine's prefix cache since the last heartbeat — `Stored` / `Removed` block hashes, `Cleared`, a
