@@ -163,23 +163,20 @@ type AuthSnapshot struct {
 }
 
 // SnapshotKey is one API key in the auth snapshot (hash, never plaintext).
+// SnapshotKey is one key as the leader learns it: an identity — who is calling
+// (the hash), what it is called, until when. It carries no policy. The per-key
+// rate limits (`rpmLimit`, `tpmLimit`), the daily token quota
+// (`quotaDailyTokens`) and the model allowlist (`allowedModels`) that earlier
+// tags declared left the leader on 2026-09-28: per-caller limits belong to the
+// application layer in front of the endpoint. A leader that still reads them
+// ignores them, as JSON does; a manager that still writes them is writing a
+// limit nothing enforces.
 type SnapshotKey struct {
-	ID            string   `json:"id"`
-	Name          string   `json:"name"`
-	Hash          string   `json:"hash"` // sha256 hex of the plaintext key
-	Scope         string   `json:"scope,omitempty"`
-	RPMLimit      int      `json:"rpmLimit,omitempty"`
-	TPMLimit      int      `json:"tpmLimit,omitempty"`
-	AllowedModels []string `json:"allowedModels,omitempty"`
-	ExpiresAt     string   `json:"expiresAt,omitempty"` // RFC 3339
-	// QuotaDailyTokens is the key's ceiling for one UTC day, in prompt +
-	// completion tokens; 0 = no quota. The leader has enforced it since before
-	// this snapshot existed (store.APIKey.QuotaDailyTokens, QuotaMiddleware),
-	// and its gateway replicas enforce it across doors from the spend snapshot
-	// — with the lag bound ADR-063 publishes. Until this field a MANAGED leader
-	// could not have one at all: every key a control plane minted arrived with
-	// no quota, so the middleware was inert and the promise was unreachable.
-	QuotaDailyTokens int64 `json:"quotaDailyTokens,omitempty"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Hash      string `json:"hash"` // sha256 hex of the plaintext key
+	Scope     string `json:"scope,omitempty"`
+	ExpiresAt string `json:"expiresAt,omitempty"` // RFC 3339
 }
 
 // PolicySnapshot is the policy file a manager mounts (OPOD_POLICY_FILE).

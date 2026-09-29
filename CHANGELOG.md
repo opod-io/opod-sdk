@@ -4,6 +4,13 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
 
 ## v0.3.0 (unreleased)
 
+- **`adminapi.SnapshotKey` loses `RPMLimit`, `TPMLimit`, `AllowedModels` and `QuotaDailyTokens`.** A key is an
+  identity — who is calling, until when — and no policy: the leader stopped enforcing per-key rate limits, the
+  daily token quota and the model allowlist on 2026-09-28 (per-caller limits are the application layer's, in
+  front of the endpoint). A manager that still writes the fields is writing a limit nothing enforces; a leader
+  that still reads them ignores them, as JSON does. Minor by the rule above: a consumer that set them must
+  stop.
+
 Minor, because consumers are expected to change: the leader and the worker decode the node protocol into
 `nodeapi` instead of their own maps and structs, and both sides of the environment contract compare
 themselves against `adminapi.Env()`. Nothing that was on the wire before changes — every new type is held
