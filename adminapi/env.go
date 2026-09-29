@@ -54,6 +54,7 @@ const (
 	EnvEngineFlags   = "OPOD_ENGINE_FLAGS"
 	EnvAdapters      = "OPOD_ADAPTERS"
 	EnvRejectBearer  = "OPOD_REJECT_BEARER"
+	EnvKVEvents      = "OPOD_KV_EVENTS"
 	EnvSleepMode     = "OPOD_SLEEP_MODE"
 	EnvWorkerRole    = "OPOD_WORKER_ROLE"
 	EnvPlanRevision  = "OPOD_PLAN_REVISION"
@@ -118,6 +119,7 @@ var envTable = []EnvVar{
 	{Name: EnvEngineFlags, Side: SideWorker, Doc: `JSON map of engine flags from the plan (tp, max_model_len, ctx, ngl, …)`},
 	{Name: EnvAdapters, Side: SideWorker, Since: "lora", Doc: `JSON list of LoRA adapters [{name, source, rank}] served as <model>:<name>`},
 	{Name: EnvRejectBearer, Side: SideWorker, Doc: `1 = the worker's API accepts HMAC only, never a bearer token`},
+	{Name: EnvKVEvents, Side: SideWorker, Since: "kv_block_events", Doc: `1 = vLLM publishes its prefix-cache events on localhost and the worker reports block hashes on its heartbeat, so the leader can route by what a worker holds`},
 	{Name: EnvSleepMode, Side: SideWorker, Since: "worker_sleep", Doc: `1 = vLLM starts with sleep mode on (the sleep autoscale tier)`},
 	{Name: EnvWorkerRole, Side: SideWorker, Since: "pd_roles", Doc: `prefill | decode for disaggregated serving; unset = a whole worker`},
 	{Name: EnvPlanRevision, Side: SideWorker, Since: "routing_weights", Doc: `the plan revision this worker process was started for; the leader routes a share of traffic per revision (R15.17)`},
