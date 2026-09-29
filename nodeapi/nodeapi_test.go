@@ -64,6 +64,10 @@ func wireCases(t *testing.T) []wireCase {
 			BootID: "0123456789abcdef", Sleeping: true, ResidentModels: &[]string{"qwen2.5-0.5b-gguf"},
 			Load: &EngineLoad{KVUsedPct: 62.5, QueueDepth: 3, TokensPerSec: 148.25, PrefixHitPct: 41, SampledAt: 1789732800},
 		}, &Heartbeat{}},
+		{"heartbeat_kv_blocks", Heartbeat{ID: "n_worker-0", BootID: "0123456789abcdef", LoadedModels: []string{"m"},
+			KVBlocks: &KVBlocks{Seq: 7, BlockSize: 16, Stored: []string{"0f1e2d3c4b5a6978"}, Removed: []string{"8796a5b4c3d2e1f0"}}}, &Heartbeat{}},
+		{"tokenize_request", TokenizeRequest{Model: "m", Messages: []TokenizeMessage{{Role: "system", Content: "s"}, {Role: "user", Content: "u"}}, MaxTokens: 1024}, &TokenizeRequest{}},
+		{"tokenize_response", TokenizeResponse{Tokens: []int{1, 2, 3}}, &TokenizeResponse{}},
 		{"heartbeat_minimal", Heartbeat{ID: "n_worker-0", BootID: "0123456789abcdef"}, &Heartbeat{}},
 		{"heartbeat_response", HeartbeatResponse{Status: StatusOK}, &HeartbeatResponse{}},
 		{"load_model_request", LoadModelRequest{

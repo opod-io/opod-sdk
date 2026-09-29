@@ -63,6 +63,11 @@ type Load struct {
 	// 0 when no worker reports — because a scaler reads it by path and a
 	// missing key is an error that blocks scale-down, not a zero.
 	KVBusyWorkers float64 `json:"kv_busy_workers"`
+	// PrefixIndex says whether the block scorer has anything to score with
+	// (feature "kv_block_events"): how many live workers report cache events
+	// and how many blocks the leader holds for them. Absent on a leader
+	// without the feature or with nothing reported.
+	PrefixIndex *PrefixIndex `json:"prefix_index,omitempty"`
 	// Time to the first token a client can use, over the last minute
 	// (R15.13; feature "ttft"). A leader that has streamed nothing recently
 	// leaves both zero — zero is "not measured", never "instant".
@@ -189,6 +194,12 @@ type PolicySnapshot struct {
 
 // PolicyRouting names the fallback target used after the pre-guardrail chain
 // when the leader has no capacity (an OpenAI-compatible base URL).
+// PrefixIndex is the state of a leader's prefix-cache block index.
+type PrefixIndex struct {
+	WorkersReporting int `json:"workers_reporting"`
+	Blocks           int `json:"blocks"`
+}
+
 type PolicyRouting struct {
 	FallbackURL   string `json:"fallbackUrl,omitempty"`
 	FallbackModel string `json:"fallbackModel,omitempty"`
@@ -204,6 +215,13 @@ type PolicyRouting struct {
 	KVWeight        float64 `json:"kvWeight,omitempty"`
 	KVSaturationPct int     `json:"kvSaturationPct,omitempty"`
 	PrefixAffinity  bool    `json:"prefixAffinity,omitempty"`
+	// PrefixBlockWeight (feature "kv_block_events") scores a worker by the
+	// prefix-cache blocks it ACTUALLY holds: each leading block of the request
+	// that a worker's engine reported stored takes PrefixBlockWeight off that
+	// worker's load score, so a warm cache can outweigh a little load and
+	// never a lot of it. 0 = off, and then — or for a worker whose engine
+	// publishes no cache events — PrefixAffinity's pin is what decides.
+	PrefixBlockWeight float64 `json:"prefixBlockWeight,omitempty"`
 	// Revisions splits traffic between plan revisions (feature
 	// "routing_weights", ROADMAP R15.17): each worker registers the plan
 	// revision it was started for, and the picker chooses a revision group by

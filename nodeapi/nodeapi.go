@@ -55,6 +55,9 @@
 package nodeapi
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"time"
 )
@@ -71,6 +74,7 @@ const (
 	PathModelUnload    = "/v1/model/unload" // POST UnloadModelRequest → UnloadModelResponse (feature "worker_unload")
 	PathModelSleep     = "/v1/model/sleep"  // POST, no body → SleepResponse
 	PathModelResume    = "/v1/model/resume" // POST, no body → SleepResponse
+	PathTokenize       = "/v1/tokenize"     // POST TokenizeRequest → TokenizeResponse | 501 (feature "kv_block_events")
 	PathAdapters       = "/v1/adapters"     // GET → []HeldAdapter
 	PathAdaptersLoad   = "/v1/adapters/load"
 	PathAdaptersUnload = "/v1/adapters/unload"
@@ -216,6 +220,94 @@ type Heartbeat struct {
 	// worker that cannot say, which a reader must treat as "no statement",
 	// never as healthy.
 	Engine *EngineState `json:"engine,omitempty"`
+	// KVBlocks (feature "kv_block_events") is what changed in the engine's
+	// prefix cache since the previous heartbeat, as block hashes. Sent only by
+	// a worker whose engine publishes cache events; nil = no statement, and
+	// the leader keeps routing that worker by the sticky prefix pin.
+	KVBlocks *KVBlocks `json:"kv_blocks,omitempty"`
+}
+
+// KVBlocks is one heartbeat's worth of prefix-cache changes on one worker.
+//
+// A block is BlockSize consecutive tokens of a prompt; its hash chains from
+// the block before it (BlockHash), so a hash names a whole prefix, not a
+// fragment. The hashes are computed by the worker with BlockHash — never the
+// engine's own, which are internal to it and have changed between versions —
+// and nothing else about the prompt leaves the worker: no token ids, no text.
+//
+// Seq counts the worker's batches from 1 and never repeats inside one boot.
+// A leader that sees a gap, and a worker that lost events from its engine,
+// resolve it the same way: the worker sends Cleared, the leader forgets what
+// it held for that worker, and the index is rebuilt from what follows. An
+// index that is briefly empty routes as the sticky pin does; one that is
+// wrong would route worse than no index at all.
+type KVBlocks struct {
+	Seq       int64    `json:"seq"`
+	BlockSize int      `json:"block_size"`
+	Stored    []string `json:"stored,omitempty"`  // BlockHash values now in the cache
+	Removed   []string `json:"removed,omitempty"` // BlockHash values evicted
+	Cleared   bool     `json:"cleared,omitempty"` // forget everything held for this worker, then apply Stored
+}
+
+// TokenizeRequest is the body of PathTokenize: the chat request whose prompt
+// the leader wants as token ids, exactly as the engine would tokenize it
+// (chat template applied). The leader has no tokenizer; the engine does.
+type TokenizeRequest struct {
+	Model    string            `json:"model"`
+	Messages []TokenizeMessage `json:"messages,omitempty"`
+	Prompt   string            `json:"prompt,omitempty"` // completions-style, when there are no messages
+	// MaxTokens bounds the answer: only the leading tokens decide a prefix
+	// match. 0 = the worker's default.
+	MaxTokens int `json:"max_tokens,omitempty"`
+}
+
+// TokenizeMessage is one chat turn, role and text.
+type TokenizeMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+// TokenizeResponse answers PathTokenize. 501 instead means the engine cannot
+// tokenize for a caller, and the leader falls back to the sticky pin.
+type TokenizeResponse struct {
+	Tokens []int `json:"tokens"`
+}
+
+// blockHashSeed is the parent of a prompt's first block.
+const blockHashSeed = "opod-kv-block-v1"
+
+// BlockHash is the hash of one block of tokens given the hash of the block
+// before it ("" for the first). 16 hex characters of SHA-256 over the parent
+// and the token ids in fixed-width big-endian form: both sides of the node
+// protocol call this one function, which is the whole reason it is here.
+func BlockHash(parent string, tokens []int) string {
+	h := sha256.New()
+	if parent == "" {
+		parent = blockHashSeed
+	}
+	h.Write([]byte(parent))
+	var b [8]byte
+	for _, t := range tokens {
+		binary.BigEndian.PutUint64(b[:], uint64(int64(t)))
+		h.Write(b[:])
+	}
+	return hex.EncodeToString(h.Sum(nil)[:8])
+}
+
+// BlockHashes is the chain of BlockHash values for the FULL blocks of tokens:
+// a trailing partial block is not a block an engine caches. blockSize ≤ 0
+// yields nothing.
+func BlockHashes(tokens []int, blockSize int) []string {
+	if blockSize <= 0 {
+		return nil
+	}
+	out := make([]string, 0, len(tokens)/blockSize)
+	parent := ""
+	for i := 0; i+blockSize <= len(tokens); i += blockSize {
+		parent = BlockHash(parent, tokens[i:i+blockSize])
+		out = append(out, parent)
+	}
+	return out
 }
 
 // Engine states (EngineState.State).

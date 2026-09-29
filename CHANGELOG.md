@@ -4,6 +4,14 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
 
 ## v0.3.0 (unreleased)
 
+- **Prefix-cache block events (feature `kv_block_events`).** `nodeapi.Heartbeat.KVBlocks` carries what changed
+  in a worker engine's prefix cache since the last heartbeat — `Stored` / `Removed` block hashes, `Cleared`, a
+  `Seq` — and nothing else about a prompt: no token ids, no text. `nodeapi.BlockHash` / `BlockHashes` are the one
+  hash both sides call (16 hex of SHA-256 over the parent hash and the block's token ids; its values are pinned by
+  a test, because changing it is a protocol change). `nodeapi.PathTokenize` with `TokenizeRequest` /
+  `TokenizeResponse` lets a leader, which has no tokenizer, ask a worker's engine for a prompt's token ids.
+  `adminapi.PolicyRouting.PrefixBlockWeight` is the knob (0 = off) and `adminapi.Load.PrefixIndex` says whether
+  the scorer has anything to score with. All additive; an older reader ignores every one of them.
 - **`catalog`: `head_dim` recorded for the two entries whose head dimension is not 128** (`qwen2.5-0.5b-gguf`,
   `llama-3.2-1b`: 64). A control plane sizes a worker's KV cache from `layers × kv_heads × head_dim` and assumes
   128 when the entry says nothing, which doubled the KV term for these two — measured on a card: the 0.5B model's
