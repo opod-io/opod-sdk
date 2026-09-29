@@ -22,3 +22,4 @@ architecture:   # shape the control plane validates a split against (R2.2); publ
   layers: 24
   heads: 14
   kv_heads: 2
+  head_dim: 64

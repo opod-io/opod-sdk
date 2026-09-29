@@ -4,6 +4,10 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
 
 ## v0.3.0 (unreleased)
 
+- **`catalog`: `head_dim` recorded for the two entries whose head dimension is not 128** (`qwen2.5-0.5b-gguf`,
+  `llama-3.2-1b`: 64). A control plane sizes a worker's KV cache from `layers × kv_heads × head_dim` and assumes
+  128 when the entry says nothing, which doubled the KV term for these two — measured on a card: the 0.5B model's
+  footprint is 0.66 GB where the 128 assumption claimed 0.79 GB and 64 gives 0.69 GB.
 - **`adminapi.SnapshotKey` loses `RPMLimit`, `TPMLimit`, `AllowedModels` and `QuotaDailyTokens`.** A key is an
   identity — who is calling, until when — and no policy: the leader stopped enforcing per-key rate limits, the
   daily token quota and the model allowlist on 2026-09-28 (per-caller limits are the application layer's, in
