@@ -41,17 +41,17 @@ func Read(name string) ([]byte, error) { return fs.ReadFile(files, name) }
 // Entry is the schema of one catalog file. Tags are the wire: yaml for the
 // files, json for the APIs that echo an entry.
 type Entry struct {
-	ID                 string       `yaml:"id"                  json:"id"`
-	DisplayName        string       `yaml:"display_name"        json:"display_name"`
-	Source             Source       `yaml:"source"              json:"source"`
-	SizeBytes          int64        `yaml:"size_bytes"          json:"size_bytes"`
-	Quant              string       `yaml:"quant"               json:"quant"`
-	ContextWindow      int          `yaml:"context_window"      json:"context_window"`
-	Capabilities       []string     `yaml:"capabilities"        json:"capabilities"`
-	RecommendedEngines []string     `yaml:"recommended_engines" json:"recommended_engines"`
-	Hardware           Hardware     `yaml:"hardware"            json:"hardware"`
-	Tags               []string     `yaml:"tags"                json:"tags"`
-	Sharding           Sharding     `yaml:"sharding,omitempty"  json:"sharding,omitempty"`
+	ID                 string   `yaml:"id"                  json:"id"`
+	DisplayName        string   `yaml:"display_name"        json:"display_name"`
+	Source             Source   `yaml:"source"              json:"source"`
+	SizeBytes          int64    `yaml:"size_bytes"          json:"size_bytes"`
+	Quant              string   `yaml:"quant"               json:"quant"`
+	ContextWindow      int      `yaml:"context_window"      json:"context_window"`
+	Capabilities       []string `yaml:"capabilities"        json:"capabilities"`
+	RecommendedEngines []string `yaml:"recommended_engines" json:"recommended_engines"`
+	Hardware           Hardware `yaml:"hardware"            json:"hardware"`
+	Tags               []string `yaml:"tags"                json:"tags"`
+	Sharding           Sharding `yaml:"sharding,omitempty"  json:"sharding,omitempty"`
 	// Architecture is what a planner validates a split against (tensor
 	// parallel divides the heads, pipeline parallel the layers); zero fields
 	// = unknown, which warns and never refuses.
@@ -93,6 +93,12 @@ type Architecture struct {
 	Heads   int   `yaml:"heads,omitempty"    json:"heads,omitempty"`
 	KVHeads int   `yaml:"kv_heads,omitempty" json:"kv_heads,omitempty"`
 	Experts int   `yaml:"experts,omitempty"  json:"experts,omitempty"`
+	// HeadDim is the attention head dimension (hidden size ÷ heads). One
+	// token of KV cache is 2 × layers × kv_heads × head_dim × bytes per
+	// element, so a reader sizing a context window needs it; 0 = not
+	// recorded, and a reader assumes 128 (most architectures; Qwen2.5-0.5B's
+	// is 64, which made that assumption 1.9× too high).
+	HeadDim int `yaml:"head_dim,omitempty" json:"head_dim,omitempty"`
 }
 
 // Hardware is the entry's stated minimum.

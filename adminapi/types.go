@@ -54,6 +54,14 @@ type Load struct {
 	PrefixHitPct float64 `json:"prefix_hit_pct"`
 	Workers      int     `json:"workers"`
 	Reporting    int     `json:"reporting"`
+	// KVBusyWorkers is the KV pressure as a PROPORTIONAL figure: the mean
+	// KV-cache use across the reporting workers, times the worker count —
+	// "how many workers' worth of KV cache is in use". A horizontal scaler
+	// computes replicas as ceil(metric ÷ target), which only means anything
+	// for a metric that grows with the replica count; KVUsedPct is a maximum
+	// over workers and can never ask for more than two. 0 when no worker
+	// reports (never "empty").
+	KVBusyWorkers float64 `json:"kv_busy_workers,omitempty"`
 	// Time to the first token a client can use, over the last minute
 	// (R15.13; feature "ttft"). A leader that has streamed nothing recently
 	// leaves both zero — zero is "not measured", never "instant".
