@@ -59,9 +59,10 @@ type Load struct {
 	// "how many workers' worth of KV cache is in use". A horizontal scaler
 	// computes replicas as ceil(metric ÷ target), which only means anything
 	// for a metric that grows with the replica count; KVUsedPct is a maximum
-	// over workers and can never ask for more than two. 0 when no worker
-	// reports (never "empty").
-	KVBusyWorkers float64 `json:"kv_busy_workers,omitempty"`
+	// over workers and can never ask for more than two. Always on the wire —
+	// 0 when no worker reports — because a scaler reads it by path and a
+	// missing key is an error that blocks scale-down, not a zero.
+	KVBusyWorkers float64 `json:"kv_busy_workers"`
 	// Time to the first token a client can use, over the last minute
 	// (R15.13; feature "ttft"). A leader that has streamed nothing recently
 	// leaves both zero — zero is "not measured", never "instant".
