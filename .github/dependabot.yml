@@ -1,0 +1,11 @@
+# The module itself imports nothing outside the standard library, so only the
+# Actions pins in .github/workflows have anything to update.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "ci(deps)"

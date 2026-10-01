@@ -1,0 +1,48 @@
+name: 🐛 Type or catalog bug
+description: A Go type does not match what the leader writes, or a catalog entry is wrong.
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This module is the wire: a JSON tag here is a key on the network, and a catalog YAML is what
+        `opod model add` acts on. Please include the actual bytes (JSON or YAML) so the fix can be held
+        by a golden file.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - adminapi (/admin/v1, /loadz, snapshot files, Env())
+        - nodeapi (register, heartbeat, load/unload, LoRA, helpers)
+        - catalog (a model YAML or the schema)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SDK tag and Opod version
+      placeholder: "opod-sdk v0.3.0 · opod v0.x (opod version)"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the type or entry says
+      description: The Go field / JSON tag, or the catalog line.
+      render: go
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What the binary actually wrote or needed
+      description: Paste the JSON body (redact any `sk-orc-…` token) or the error from `opod model add`.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else

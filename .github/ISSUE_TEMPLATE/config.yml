@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions and discussion
+    url: https://github.com/opod-io/opod-core/discussions
+    about: One community for both repos. Ask how to use a type or the catalog from your own manager here.
+  - name: 🐛 A bug in the Opod runtime itself (install, engines, routing, CLI)
+    url: https://github.com/opod-io/opod-core/issues/new/choose
+    about: This repo is only the types and the catalog. Runtime bugs go to opod-core.
+  - name: 🔒 Security disclosure
+    url: https://github.com/opod-io/opod-sdk/security/advisories/new
+    about: Report security issues privately, never as a public issue. See SECURITY.md.

@@ -1,6 +1,21 @@
 # opod-sdk
 
-The typed contract between an **opod** leader (`opod-io/opod-core`, Apache-2.0) and whatever manages it — the opod control plane today, anything else tomorrow. Apache-2.0, stdlib only, no business logic.
+> **The Go contract for [Opod](https://github.com/opod-io/opod-core), the self-hosted, OpenAI-compatible inference runtime: wire types, node protocol, environment contract and model catalog.**
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/opod-io/opod-sdk.svg)](https://pkg.go.dev/github.com/opod-io/opod-sdk)
+[![Go](https://img.shields.io/github/go-mod/go-version/opod-io/opod-sdk)](go.mod)
+[![Release](https://img.shields.io/github/v/release/opod-io/opod-sdk?sort=semver)](https://github.com/opod-io/opod-sdk/releases/latest)
+[![CI](https://github.com/opod-io/opod-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/opod-io/opod-sdk/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/opod-io/opod-sdk?color=blue)](LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/code%20of%20conduct-Contributor%20Covenant%202.1-5e4b8b)](CODE_OF_CONDUCT.md)
+
+[**opod.io**](https://opod.io) · [opod-core](https://github.com/opod-io/opod-core) (the runtime) · [Discussions](https://github.com/opod-io/opod-core/discussions) · [Contributing](CONTRIBUTING.md) · [Support](SUPPORT.md) · Apache-2.0
+
+The typed contract between an **opod** leader (`opod-io/opod-core`, Apache-2.0) and whatever manages it — the opod control plane today, anything else tomorrow. Apache-2.0, stdlib only, no business logic. If you are writing a manager, an autoscaler, a dashboard or a CI check that talks to an Opod leader's `/admin/v1`, or a worker that speaks its node protocol, this module is the one dependency you need; parsing and decisions stay on your side.
+
+```bash
+go get github.com/opod-io/opod-sdk@latest
+```
 
 | Package | What |
 |---|---|
@@ -45,3 +60,11 @@ The table is what the leader *declares*. The `OPOD_*` spellings of `config.yaml`
 A change to a key that is already on the wire is neither: it is a new `ContractVersion`, and both sides carry the old shape until every deployed binary is past it.
 
 History: [`CHANGELOG.md`](CHANGELOG.md).
+
+## Contributing, security, licence
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — a catalog entry is a one-file PR; a wire change comes with its golden file and a CHANGELOG line
+- [SECURITY.md](SECURITY.md) — report privately through a GitHub Security Advisory
+- [SUPPORT.md](SUPPORT.md) — where each kind of question goes
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Contributor Covenant 2.1
+- [LICENSE](LICENSE) — Apache-2.0, no CLA, DCO sign-off on every commit
