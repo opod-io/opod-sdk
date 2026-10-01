@@ -228,4 +228,4 @@ Traces tag the choice as `opod.fallback.classifier = generic | context-length | 
 
 For models that need GGUF prep or aren't on Ollama, include the prep steps as a top-of-file comment (see `llama-3.3-70b-sharded.yaml` for an example).
 
-If you want a model added but don't want to author the YAML yourself, open a [catalog request issue](https://github.com/opod-io/opod/issues/new?template=catalog_request.yml).
+If you want a model added but don't want to author the YAML yourself, open a [catalog request issue](https://github.com/opod-io/opod-sdk/issues/new?template=catalog_request.yml).
