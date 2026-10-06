@@ -69,10 +69,13 @@ type Load struct {
 	// without the feature or with nothing reported.
 	PrefixIndex *PrefixIndex `json:"prefix_index,omitempty"`
 	// Time to the first token a client can use, over the last minute
-	// (R15.13; feature "ttft"). A leader that has streamed nothing recently
-	// leaves both zero — zero is "not measured", never "instant".
-	TTFTP50Ms int64 `json:"ttft_p50_ms,omitempty"`
-	TTFTP95Ms int64 `json:"ttft_p95_ms,omitempty"`
+	// (R15.13; feature "ttft"). 0 means "not measured in the last minute"
+	// (nothing streamed), never "instant". Always on the wire, like
+	// KVBusyWorkers: a scaler reads it by path and a missing key is an error
+	// that blocks scale-down, while a quiet minute's 0 sits below any budget
+	// and lets the other triggers decide.
+	TTFTP50Ms int64 `json:"ttft_p50_ms"`
+	TTFTP95Ms int64 `json:"ttft_p95_ms"`
 	// EnginesUnhealthy is how many of the workers counted above are holding a
 	// card while their engine is NOT serving — crash-looping or stopped
 	// (feature "engine_liveness"). They heartbeat like any other worker, so
