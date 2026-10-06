@@ -2,6 +2,26 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.3.1 (2026-10-06)
+
+- **Key revocation is a tombstone (ADR-085).** `adminapi.AuthSnapshot.RevokedKeys` lists API key ids a leader
+  refuses even while a row for them is still in `Keys`, mirroring `RevokedCerts`: an append that anyone with
+  RBAC on the mounted Secret can deliver while the manager is down. A leader never un-revokes an id it has seen.
+- **A snapshot says when it was written.** `AuthSnapshot.IssuedAt` (RFC 3339) is what a snapshot's age is
+  measured from — a file's mtime moves only when its content does, so a quiet fleet would look infinitely stale.
+- **An optional bound on that age.** `PolicySnapshot.Auth.MaxSnapshotAgeSec`: past it, a leader refuses keyed
+  traffic and says why. 0 is the old fail-static behaviour.
+- **A saturated endpoint can hold before it sheds (ADR-082).** `PolicySnapshot.Admission{HoldMs, MaxHeld}`: a
+  request that finds no headroom waits up to `HoldMs` for some, first come first served, at most `MaxHeld` at
+  once. 0 sheds at once, as before.
+- **`adminapi.Load.TTFTP50Ms` / `TTFTP95Ms` are always on the wire**, 0 meaning "not measured in the last
+  minute" — the rule `kv_busy_workers` already follows. A missing key reads as a failed metric to an external
+  scaler, which blocks its scale-down.
+- **`catalog`: `bge-reranker-v2-m3-gguf`**, the catalog's first reranker (GGUF, Apache-2.0), for the
+  `/v1/rerank` route that returns to core under ADR-084.
+
+Patch, by the rule above: every change is additive, and an older reader ignores each new field.
+
 ## v0.3.0 (2026-09-29)
 
 - **Prefix-cache block events (feature `kv_block_events`).** `nodeapi.Heartbeat.KVBlocks` carries what changed
