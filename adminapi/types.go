@@ -165,6 +165,20 @@ type AuthSnapshot struct {
 	// watches: nothing else is on the request path (ADR-001), and a CRL
 	// endpoint would put the manager there.
 	RevokedCerts []string `json:"revokedCerts,omitempty"`
+	// RevokedKeys are the ids of API keys this leader must refuse even if a
+	// row for them is still in Keys: a revocation is a TOMBSTONE, not a
+	// removal (ADR-085). An append is something a second writer — anyone with
+	// RBAC on the mounted Secret — can deliver correctly while the manager is
+	// down, where re-deriving the whole allow list is not. A leader never
+	// un-revokes an id it has seen here.
+	RevokedKeys []string `json:"revokedKeys,omitempty"`
+	// IssuedAt is when the manager wrote this snapshot (RFC 3339). It is what
+	// a snapshot's AGE is measured from: the file's mtime changes only when
+	// its content does, so a quiet fleet would look infinitely stale. A
+	// manager that sets a staleness bound (PolicyAuth.MaxSnapshotAgeSec)
+	// re-issues the snapshot on a period shorter than that bound. Empty = the
+	// age is unknown, and no bound is enforced against it.
+	IssuedAt string `json:"issuedAt,omitempty"`
 }
 
 // SnapshotKey is one API key in the auth snapshot (hash, never plaintext).
@@ -190,16 +204,44 @@ type PolicySnapshot struct {
 	Routing    PolicyRouting   `json:"routing"`
 	Logging    PolicyLogging   `json:"logging"`
 	Guardrails []GuardrailRule `json:"guardrails"`
+	// Auth bounds how the leader treats its own auth snapshot (ADR-085).
+	Auth PolicyAuth `json:"auth,omitzero"`
+	// Admission says what a saturated endpoint does with the next request
+	// (ADR-082). The zero value is the old behaviour: shed at once.
+	Admission PolicyAdmission `json:"admission,omitzero"`
 }
 
-// PolicyRouting names the fallback target used after the pre-guardrail chain
-// when the leader has no capacity (an OpenAI-compatible base URL).
+// PolicyAuth is the endpoint owner's choice between availability and
+// revocation under a manager outage (ADR-085 §4). No setting, no judgement.
+type PolicyAuth struct {
+	// MaxSnapshotAgeSec, when > 0, makes the leader refuse keyed traffic once
+	// its auth snapshot's IssuedAt is older than this many seconds, with a
+	// reason a human can read. 0 = fail-static: a leader keeps serving from
+	// whatever snapshot it holds, for as long as it holds it.
+	MaxSnapshotAgeSec int `json:"maxSnapshotAgeSec,omitempty"`
+}
+
+// PolicyAdmission is the hold a saturated endpoint applies before it sheds
+// (ADR-082). First come, first served: no ranking enters the leader.
+type PolicyAdmission struct {
+	// HoldMs, when > 0, is how long a request that finds no headroom waits
+	// for some before the leader answers 503 + Retry-After. 0 = shed at once,
+	// exactly as before this field existed.
+	HoldMs int `json:"holdMs,omitempty"`
+	// MaxHeld caps how many requests may be waiting at once; past it the next
+	// one is shed immediately, so a burst cannot pile up goroutines without
+	// bound. 0 = the leader's default.
+	MaxHeld int `json:"maxHeld,omitempty"`
+}
+
 // PrefixIndex is the state of a leader's prefix-cache block index.
 type PrefixIndex struct {
 	WorkersReporting int `json:"workers_reporting"`
 	Blocks           int `json:"blocks"`
 }
 
+// PolicyRouting names the fallback target used after the pre-guardrail chain
+// when the leader has no capacity (an OpenAI-compatible base URL).
 type PolicyRouting struct {
 	FallbackURL   string `json:"fallbackUrl,omitempty"`
 	FallbackModel string `json:"fallbackModel,omitempty"`
