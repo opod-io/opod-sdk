@@ -2,7 +2,7 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
-## Unreleased
+## v0.4.0 (2026-10-07)
 
 - **Request classes and fair share (ADR-086).** `adminapi.SnapshotKey.Class` (`critical` | `standard` |
   `sheddable`, empty = `standard`) and `SnapshotKey.Team` (the flow a key shares with its team; empty = the key
