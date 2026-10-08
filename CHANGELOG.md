@@ -2,6 +2,27 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## Unreleased
+
+- **Request classes and fair share (ADR-086).** `adminapi.SnapshotKey.Class` (`critical` | `standard` |
+  `sheddable`, empty = `standard`) and `SnapshotKey.Team` (the flow a key shares with its team; empty = the key
+  is its own flow). `PolicyAdmission.Classes[]{Name, HoldMs, MaxHeld}` gives each class its own hold; with no
+  classes the hold is first come, first served, exactly as in v0.3.1.
+- **The cell door's routes file (ADR-087).** `adminapi.DoorRoutes{Revision, Routes[]{Alias, Upstream, Model, CA}}`
+  is the file `opod up --role door --routes <file>` watches: the `model` name a client sends, the endpoint that
+  answers it, the model id that endpoint serves when it differs from the alias, and the certificate the door
+  trusts for an https upstream. A new type; nothing existing changes.
+- **A worker states its KV cache tier (ADR-089).** `nodeapi.Capabilities.KVTier` (`cpu` | `peer`, empty = VRAM
+  only), with the constants `KVTierCPU` and `KVTierPeer`. A leader with feature `kv_peer_hits` scores a prefix a
+  sibling holds as a peer hit for a worker that states `peer`. Additive and omitted when empty.
+
+- **Admission is governed by worker slots (ADR-091).** `nodeapi.Heartbeat.Slots`: how many requests the worker's
+  engine serves at once (0 / omitted = it cannot say, and the leader treats it as unbounded).
+  `PolicyAdmissionClass.MaxShare`: the fraction of the model's slots a class may occupy at once, in (0, 1]; 0 = the
+  class default (critical 1, standard 1, sheddable 0.25). Both additive and omitted when zero.
+
+Patch, by the rule above: every change is additive, and an older reader ignores each new field.
+
 ## v0.3.1 (2026-10-06)
 
 - **Key revocation is a tombstone (ADR-085).** `adminapi.AuthSnapshot.RevokedKeys` lists API key ids a leader

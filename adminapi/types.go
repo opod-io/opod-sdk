@@ -199,6 +199,15 @@ type SnapshotKey struct {
 	Hash      string `json:"hash"` // sha256 hex of the plaintext key
 	Scope     string `json:"scope,omitempty"`
 	ExpiresAt string `json:"expiresAt,omitempty"` // RFC 3339
+	// Class ranks this key's requests when the endpoint is full (ADR-086):
+	// "critical", "standard" or "sheddable". Empty = "standard". It ranks; it
+	// does not meter. A request may lower its own class with X-Opod-Class,
+	// never raise it.
+	Class string `json:"class,omitempty"`
+	// Team, when set, is the FLOW this key's requests share fairly with the
+	// other flows of their class: every key of one team is one flow. Empty =
+	// the key is its own flow.
+	Team string `json:"team,omitempty"`
 }
 
 // PolicySnapshot is the policy file a manager mounts (OPOD_POLICY_FILE).
@@ -225,16 +234,81 @@ type PolicyAuth struct {
 }
 
 // PolicyAdmission is the hold a saturated endpoint applies before it sheds
-// (ADR-082). First come, first served: no ranking enters the leader.
+// (ADR-082). Headroom is a free worker SLOT (ADR-091): the leader dispatches
+// to a worker only while its requests in flight are below the slot count the
+// worker reports, and holds the rest. With no Classes every request is
+// "standard" and the hold is first come, first served; with Classes the
+// leader holds one queue per request class, dispatched strictly in class order
+// and fairly per flow inside a class (ADR-086).
 type PolicyAdmission struct {
-	// HoldMs, when > 0, is how long a request that finds no headroom waits
-	// for some before the leader answers 503 + Retry-After. 0 = shed at once,
-	// exactly as before this field existed.
+	// HoldMs, when > 0, is how long a request waits for a slot before the
+	// leader answers 503 + Retry-After. 0 = a request that finds NO worker
+	// able to serve is shed at once, as before this field existed, and one
+	// that finds every slot busy waits with no deadline of the leader's (the
+	// queue the engine kept before ADR-091), bounded by MaxHeld and the
+	// client's own timeout.
 	HoldMs int `json:"holdMs,omitempty"`
 	// MaxHeld caps how many requests may be waiting at once; past it the next
 	// one is shed immediately, so a burst cannot pile up goroutines without
 	// bound. 0 = the leader's default.
 	MaxHeld int `json:"maxHeld,omitempty"`
+	// Classes turns on request classes (ADR-086). Empty = every request is
+	// "standard" and the hold is first come, first served, exactly as without
+	// this field. A class not listed takes HoldMs above and no cap of its own;
+	// MaxHeld above then caps every class together, and a full hold sheds the
+	// lowest class first.
+	Classes []PolicyAdmissionClass `json:"classes,omitempty"`
+}
+
+// PolicyAdmissionClass is one request class's own hold (ADR-086).
+type PolicyAdmissionClass struct {
+	// Name is "critical", "standard" or "sheddable".
+	Name string `json:"name"`
+	// HoldMs is how long a request of this class waits for capacity before
+	// it is shed. 0 = this class is shed at once.
+	HoldMs int `json:"holdMs,omitempty"`
+	// MaxHeld caps how many of this class wait at once. 0 = no cap of its
+	// own; the admission-wide MaxHeld still applies.
+	MaxHeld int `json:"maxHeld,omitempty"`
+	// MaxShare (ADR-091) is the fraction of the model's worker slots this
+	// class may occupy at once, in (0, 1]. A class at its share waits even
+	// while slots are free, which keeps that headroom for the classes above
+	// it: ordering alone cannot, because a critical arrival would still wait
+	// for a whole sheddable answer to finish. The cap is
+	// max(1, floor(MaxShare × slots)). 0 = the class's default: critical 1,
+	// standard 1, sheddable 0.25.
+	MaxShare float64 `json:"maxShare,omitempty"`
+}
+
+// DoorRoutes is the routes file a cell door watches (`opod up --role door
+// --routes <file>`, feature `door`, ADR-087): which endpoint answers each
+// model name. A door is a name lookup, not a router: it forwards a request to
+// the route's upstream and chooses nothing else — no worker, no retry, no
+// fallback — and it holds no credential of its own, so the upstream's leader
+// verifies the caller's key as it always does.
+type DoorRoutes struct {
+	// Revision names this version of the file; a door publishes the one it
+	// serves from (/gatewayz).
+	Revision string      `json:"revision"`
+	Routes   []DoorRoute `json:"routes"`
+}
+
+// DoorRoute is one model name and the endpoint that answers it.
+type DoorRoute struct {
+	// Alias is the name a client sends as `model`. Unique within the file;
+	// a door refuses a file that repeats one, keeping the last good one.
+	Alias string `json:"alias"`
+	// Upstream is the endpoint's base URL (scheme://host:port, no /v1).
+	Upstream string `json:"upstream"`
+	// Model, when set and different from Alias, is the model id the upstream
+	// serves: the door rewrites the request's `model` to it and changes
+	// nothing else. A leader routes by its own model id, so an alias that is
+	// not that id reaches it only this way. Empty = the alias IS that id.
+	Model string `json:"model,omitempty"`
+	// CA is the PEM certificate(s) the door trusts for an https upstream —
+	// exactly these, never the system roots. Public material, which is why
+	// it may sit in this file. Empty = the system roots (or plain http).
+	CA string `json:"ca,omitempty"`
 }
 
 // PrefixIndex is the state of a leader's prefix-cache block index.

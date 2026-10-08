@@ -59,6 +59,8 @@ func wireCases(t *testing.T) []wireCase {
 		{"register_response", RegisterResponse{Status: StatusRegistered, ID: "n_worker-0"}, &RegisterResponse{}},
 		{"capabilities", capsFull, &Capabilities{}},
 		{"capabilities_minimal", capsMinimal, &Capabilities{}},
+		{"capabilities_kv_peer", Capabilities{Hostname: "node-c", OS: "linux", Arch: "amd64", CPUCores: 16, RAMGB: 64,
+			GPUs: []GPU{{Name: "NVIDIA RTX A6000", VRAMGB: 47}}, Engine: "vllm", KVTier: KVTierPeer}, &Capabilities{}},
 		{"heartbeat", Heartbeat{
 			ID: "n_worker-0", LoadedModels: []string{"qwen2.5-0.5b-gguf", "qwen2.5-0.5b-gguf:support"},
 			BootID: "0123456789abcdef", Sleeping: true, ResidentModels: &[]string{"qwen2.5-0.5b-gguf"},

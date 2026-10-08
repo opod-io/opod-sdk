@@ -169,6 +169,13 @@ type Capabilities struct {
 	// process stops the model it serves to start another. Empty = a worker
 	// that predates the field.
 	Engine string `json:"Engine,omitempty"`
+	// KVTier (feature "kv_peer_hits") is the tier below VRAM the worker's
+	// engine keeps its KV cache in: "" = VRAM only, KVTierCPU = host memory
+	// of its own, KVTierPeer = host memory its siblings can read from too.
+	// The leader scores a prefix a sibling holds as a PEER hit for a worker
+	// that states KVTierPeer — weaker than a block of its own, stronger than
+	// none. Empty = a worker that predates the field, or one with no tier.
+	KVTier string `json:"KVTier,omitempty"`
 }
 
 // GPU is one detected device.
@@ -181,6 +188,12 @@ type GPU struct {
 const (
 	RolePrefill = "prefill"
 	RoleDecode  = "decode"
+)
+
+// KV cache tiers (Capabilities.KVTier).
+const (
+	KVTierCPU  = "cpu"
+	KVTierPeer = "peer"
 )
 
 // Heartbeat is the body of PathHeartbeat.
@@ -209,6 +222,13 @@ type Heartbeat struct {
 	// Load is sent only when the engine reported a sample (feature
 	// "load_signals").
 	Load *EngineLoad `json:"load,omitempty"`
+	// Slots (feature "slot_admission", ADR-091) is how many requests the
+	// worker's engine serves at once: llama.cpp's total_slots, SGLang's
+	// effective max running requests, vLLM's --max-num-seqs. The leader
+	// dispatches to the worker only while its requests in flight are below
+	// it and holds the rest, ranked by class. 0 = the worker cannot say; the
+	// leader then treats it as unbounded (UNGOVERNED) and says so.
+	Slots int `json:"slots,omitempty"`
 	// Engine (feature "engine_liveness") is what the worker's engine process is
 	// doing, as the worker sees it. A pod can be Running while the engine
 	// inside it crash-loops, restarts on a bad flag, or never finishes loading
