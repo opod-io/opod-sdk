@@ -61,6 +61,11 @@ func wireCases(t *testing.T) []wireCase {
 		{"capabilities_minimal", capsMinimal, &Capabilities{}},
 		{"capabilities_kv_peer", Capabilities{Hostname: "node-c", OS: "linux", Arch: "amd64", CPUCores: 16, RAMGB: 64,
 			GPUs: []GPU{{Name: "NVIDIA RTX A6000", VRAMGB: 47}}, Engine: "vllm", KVTier: KVTierPeer}, &Capabilities{}},
+		{"capabilities_given_devices", Capabilities{Hostname: "opod-ep-chat-0", OS: "linux", Arch: "amd64", CPUCores: 32, RAMGB: 128,
+			GPUs: []GPU{{Name: "NVIDIA RTX A6000", VRAMGB: 47}}, Engine: "vllm",
+			GivenDevices: &[]GivenDevice{{Index: 0, Vendor: VendorNVIDIA, PCI: "0000:41:00.0", UUID: "GPU-6f1c2a3b-0000-4000-8000-000000000001"}}}, &Capabilities{}},
+		{"capabilities_given_none", Capabilities{Hostname: "opod-ep-chat-1", OS: "linux", Arch: "amd64", CPUCores: 8, RAMGB: 32,
+			GivenDevices: &[]GivenDevice{}}, &Capabilities{}},
 		{"heartbeat", Heartbeat{
 			ID: "n_worker-0", LoadedModels: []string{"qwen2.5-0.5b-gguf", "qwen2.5-0.5b-gguf:support"},
 			BootID: "0123456789abcdef", Sleeping: true, ResidentModels: &[]string{"qwen2.5-0.5b-gguf"},
@@ -292,6 +297,12 @@ func TestOmittedVersusZero(t *testing.T) {
 		{Capabilities{}, "GPUs", true},
 		{Capabilities{}, "Role", false},
 		{Capabilities{}, "PlanRevision", false},
+		{Capabilities{}, "GivenDevices", false},                              // no statement: an older worker
+		{Capabilities{GivenDevices: &[]GivenDevice{}}, "GivenDevices", true}, // looked and was given none: said, not omitted
+		{GivenDevice{}, "PCI", false},
+		{GivenDevice{}, "UUID", false},
+		{GivenDevice{}, "Index", true},
+		{GivenDevice{}, "Vendor", true},
 		{LoadModelRequest{}, "file", false},
 		{LoadModelRequest{}, "ollama_name", true},
 		{LoadModelRequest{}, "pin", true},
@@ -407,4 +418,24 @@ func mustJSON(t *testing.T, v any) []byte {
 		t.Fatal(err)
 	}
 	return b
+}
+
+// NormalizePCI is the one spelling both sides compare: nvidia-smi's
+// eight-digit upper-case domain and sysfs's form name the same device.
+func TestNormalizePCI(t *testing.T) {
+	for in, want := range map[string]string{
+		"00000000:41:00.0": "0000:41:00.0",
+		"0000:03:00.0":     "0000:03:00.0",
+		" 0000:0A:00.0\n":  "0000:0a:00.0",
+		"0:3:00.0":         "0000:3:00.0",
+		"00000001:41:00.0": "0001:41:00.0",
+		"10000000:41:00.0": "10000000:41:00.0", // a domain that does not fit four digits is kept, not cut
+		"41:00.0":          "41:00.0",          // no domain: returned as written
+		"":                 "",
+		"not-an-address":   "not-an-address",
+	} {
+		if got := NormalizePCI(in); got != want {
+			t.Errorf("NormalizePCI(%q) = %q, want %q", in, got, want)
+		}
+	}
 }

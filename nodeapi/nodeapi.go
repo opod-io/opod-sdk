@@ -59,6 +59,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -176,12 +177,73 @@ type Capabilities struct {
 	// that states KVTierPeer — weaker than a block of its own, stronger than
 	// none. Empty = a worker that predates the field, or one with no tier.
 	KVTier string `json:"KVTier,omitempty"`
+	// GivenDevices (feature "worker_devices") is the accelerators THIS worker
+	// process was given, read from inside its own sandbox — the device nodes
+	// it can open and the devices its vendor runtime enumerates — never the
+	// host's full list. Under a device plugin that is the subset the plugin
+	// handed the container, which is the one fact a manager cannot otherwise
+	// learn: it asked for N devices and was never told which.
+	//
+	// nil = no statement (a worker that predates the field). A pointer to an
+	// empty list = the worker looked and was given none (a CPU-only part).
+	// The two are different words, which is why this is a pointer.
+	GivenDevices *[]GivenDevice `json:"GivenDevices,omitempty"`
 }
 
 // GPU is one detected device.
 type GPU struct {
 	Name   string `json:"Name"`
 	VRAMGB int    `json:"VRAMGB"`
+}
+
+// GivenDevice is one accelerator a worker process was given.
+//
+// Index is the device's position in the worker's OWN enumeration — inside a
+// container that is usually 0..N-1 whichever physical cards they are — so it
+// names nothing on the host. A reader matches on PCI, or UUID where the
+// vendor publishes one; Index is only for a human reading the row.
+type GivenDevice struct {
+	Index int `json:"Index"`
+	// Vendor is one of VendorNVIDIA, VendorAMD, VendorIntel, VendorTT — the
+	// vocabulary of adminapi.EnvAccelerator.
+	Vendor string `json:"Vendor"`
+	// PCI is the device's PCI address in the canonical sysfs form
+	// "0000:03:00.0" (NormalizePCI). "" = the worker could not read it.
+	PCI string `json:"PCI,omitempty"`
+	// UUID is the vendor's stable device id where it has one (NVIDIA's
+	// "GPU-…"). "" = the vendor publishes none.
+	UUID string `json:"UUID,omitempty"`
+}
+
+// Accelerator vendors (GivenDevice.Vendor).
+const (
+	VendorNVIDIA = "nvidia"
+	VendorAMD    = "amd"
+	VendorIntel  = "intel"
+	VendorTT     = "tt"
+)
+
+// NormalizePCI returns a PCI address in the canonical sysfs form: a
+// four-digit domain, lower case ("0000:03:00.0"). nvidia-smi prints an
+// eight-digit domain in upper case ("00000000:03:00.0"); sysfs prints the
+// canonical form already. A value that is not a PCI address comes back
+// trimmed and lower-cased, never invented.
+func NormalizePCI(s string) string {
+	s = strings.ToLower(strings.TrimSpace(s))
+	dom, rest, ok := strings.Cut(s, ":")
+	if !ok || strings.Count(rest, ":") != 1 {
+		return s // bus:dev.fn with no domain, or not an address at all
+	}
+	if len(dom) > 4 {
+		if strings.TrimLeft(dom[:len(dom)-4], "0") != "" {
+			return s // a domain wider than four digits: keep it as written
+		}
+		dom = dom[len(dom)-4:]
+	}
+	for len(dom) < 4 {
+		dom = "0" + dom
+	}
+	return dom + ":" + rest
 }
 
 // Worker roles (Capabilities.Role).

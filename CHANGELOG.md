@@ -2,6 +2,20 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.1 (unreleased)
+
+- **A worker says which accelerators it was given (feature `worker_devices`).** `nodeapi.Capabilities.GivenDevices`
+  is the list of devices the worker process can see from inside its own sandbox — under a device plugin, the subset
+  the plugin handed the container — each as `GivenDevice{Index, Vendor, PCI, UUID}`. `Index` is the worker's own
+  enumeration and names nothing on the host; a reader matches on `PCI` (canonical `0000:03:00.0`) or `UUID`. A nil
+  pointer is no statement (an older worker); a pointer to an empty list says the worker was given none. A manager
+  that asked a device plugin for N devices can now learn which N it got instead of inferring it.
+- **`nodeapi.NormalizePCI`** is the one spelling both sides compare: nvidia-smi's `00000000:41:00.0` and sysfs's
+  `0000:41:00.0` name the same device. Constants `VendorNVIDIA`, `VendorAMD`, `VendorIntel`, `VendorTT` use the
+  vocabulary of `adminapi.EnvAccelerator`.
+
+Patch, by the rule above: every change is additive and omitted when unset, and an older reader ignores it.
+
 ## v0.4.0 (2026-10-07)
 
 - **Request classes and fair share (ADR-086).** `adminapi.SnapshotKey.Class` (`critical` | `standard` |
