@@ -2,7 +2,7 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
-## v0.4.1 (unreleased)
+## v0.4.1 (2026-10-11)
 
 - **A worker says which accelerators it was given (feature `worker_devices`).** `nodeapi.Capabilities.GivenDevices`
   is the list of devices the worker process can see from inside its own sandbox — under a device plugin, the subset
