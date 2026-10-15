@@ -403,6 +403,12 @@ const (
 	// once in this worker's lifetime. The pod stays Running; the engine does
 	// not stay up.
 	EngineCrashLooping = "crash-looping"
+	// EngineRestarting: the process exited and the worker will relaunch it
+	// after a back-off (seconds, doubling on each consecutive exit). Nothing
+	// answers in the meantime; unlike EngineStopped, it is coming back with no
+	// change from anyone. A worker older than this value says EngineStopped
+	// here.
+	EngineRestarting = "restarting"
 	// EngineStopped: exited and not restarting — a fatal flag, a missing file,
 	// an unsupported model. It will not come back without a change.
 	EngineStopped = "stopped"
