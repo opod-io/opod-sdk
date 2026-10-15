@@ -2,6 +2,15 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.2 (2026-10-14)
+
+- **`nodeapi.EngineRestarting` (`"restarting"`): an engine that exited and that the worker will relaunch after a
+  back-off.** Until now a worker reported that window as `EngineStopped`, whose meaning is "will not come back without a
+  change", so a leader told callers an engine had stopped while it was a second or two from serving again. A reader
+  that does not know the value treats it as no statement, as `EngineState.State` already requires.
+
+Patch, by the rule above: one new constant, additive.
+
 ## v0.4.1 (2026-10-11)
 
 - **A worker says which accelerators it was given (feature `worker_devices`).** `nodeapi.Capabilities.GivenDevices`
