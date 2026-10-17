@@ -184,15 +184,11 @@ type AuthSnapshot struct {
 	IssuedAt string `json:"issuedAt,omitempty"`
 }
 
-// SnapshotKey is one API key in the auth snapshot (hash, never plaintext).
-// SnapshotKey is one key as the leader learns it: an identity — who is calling
-// (the hash), what it is called, until when. It carries no policy. The per-key
-// rate limits (`rpmLimit`, `tpmLimit`), the daily token quota
-// (`quotaDailyTokens`) and the model allowlist (`allowedModels`) that earlier
-// tags declared left the leader on 2026-09-28: per-caller limits belong to the
-// application layer in front of the endpoint. A leader that still reads them
-// ignores them, as JSON does; a manager that still writes them is writing a
-// limit nothing enforces.
+// SnapshotKey is one API key in the auth snapshot (hash, never plaintext): an
+// identity — who is calling, what it is called, until when — and, since v0.5.0,
+// the limits its owner set on it (ADR-092 §8, T19.17). Every limit is enforced
+// in the leader's memory, never by a query on the request path (the reason
+// ADR-077 removed the first version); zero or empty means no limit.
 type SnapshotKey struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
@@ -208,6 +204,20 @@ type SnapshotKey struct {
 	// other flows of their class: every key of one team is one flow. Empty =
 	// the key is its own flow.
 	Team string `json:"team,omitempty"`
+	// RPMLimit and TPMLimit bound requests and tokens per minute (a token
+	// bucket per key; a gateway replica enforces its share of the limit).
+	RPMLimit int `json:"rpmLimit,omitempty"`
+	TPMLimit int `json:"tpmLimit,omitempty"`
+	// QuotaDailyTokens bounds the tokens a key may use per UTC day.
+	QuotaDailyTokens int64 `json:"quotaDailyTokens,omitempty"`
+	// AllowedModels, when set, are the only model ids this key may ask for.
+	AllowedModels []string `json:"allowedModels,omitempty"`
+	// SpentToday is the manager's count of the key's tokens on Day (UTC,
+	// "2006-01-02"), so a leader that restarted with an empty memory starts
+	// from it; a leader keeps the larger of it and its own count, and ignores
+	// it on any other day.
+	SpentToday int64  `json:"spentToday,omitempty"`
+	Day        string `json:"day,omitempty"`
 }
 
 // PolicySnapshot is the policy file a manager mounts (OPOD_POLICY_FILE).
@@ -309,6 +319,30 @@ type DoorRoute struct {
 	// exactly these, never the system roots. Public material, which is why
 	// it may sit in this file. Empty = the system roots (or plain http).
 	CA string `json:"ca,omitempty"`
+	// Candidates make this an AUTO route (ADR-092 §8, T19.18): the door picks
+	// one of these endpoints by Pick and falls back down the list on an
+	// unavailable answer. Upstream, Model and CA are then unused. The order is
+	// the owner's; nothing in it is a price.
+	Candidates []DoorCandidate `json:"candidates,omitempty"`
+	// Pick is "first" (the first candidate that can take the request, the
+	// default) or "least-loaded" (by each candidate's /loadz).
+	Pick string `json:"pick,omitempty"`
+	// MaxHops is how many fallbacks one request may take (default 1, at most
+	// len(Candidates)-1).
+	MaxHops int `json:"maxHops,omitempty"`
+}
+
+// DoorCandidate is one endpoint an auto route may send a request to.
+type DoorCandidate struct {
+	// Alias is the candidate endpoint's own alias, named in the response's
+	// X-Opod-Endpoint header.
+	Alias    string `json:"alias"`
+	Upstream string `json:"upstream"`
+	Model    string `json:"model,omitempty"`
+	CA       string `json:"ca,omitempty"`
+	// Tools says the candidate's model can call tools: a request that carries
+	// `tools` skips a candidate without it.
+	Tools bool `json:"tools,omitempty"`
 }
 
 // PrefixIndex is the state of a leader's prefix-cache block index.

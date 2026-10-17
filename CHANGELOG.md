@@ -2,6 +2,18 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.3 (2026-10-17)
+
+- **Per-key limits return, enforced in memory (ADR-092 §8, T19.17).** `SnapshotKey` gains `rpmLimit`, `tpmLimit`,
+  `quotaDailyTokens`, `allowedModels`, and the manager's `spentToday` for `day` (UTC), which a restarted leader starts
+  from. Zero or empty = no limit. Unlike the fields of the same names removed before v0.3.0, a leader that advertises
+  `key_limits` enforces them, with no query on the request path.
+- **Auto routes at the door (ADR-092 §8, T19.18).** `DoorRoute` gains `candidates` (`DoorCandidate{alias, upstream,
+  model, ca, tools}`), `pick` (`first` | `least-loaded`) and `maxHops`: a door that advertises `door_auto` picks one
+  candidate and falls back down the owner's list on an unavailable answer.
+
+Patch, by the rule above: additive fields only.
+
 ## v0.4.2 (2026-10-14)
 
 - **`nodeapi.EngineRestarting` (`"restarting"`): an engine that exited and that the worker will relaunch after a
