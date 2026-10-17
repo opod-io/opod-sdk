@@ -184,6 +184,12 @@ type AuthSnapshot struct {
 	IssuedAt string `json:"issuedAt,omitempty"`
 }
 
+// SnapshotKeyPrefix is how a leader names a key it learned from the auth
+// snapshot: SnapshotKeyPrefix + SnapshotKey.ID. Every record the leader writes
+// about the key — usage rows, events, the spend snapshot — carries that name,
+// so a manager strips the prefix to find its own key again.
+const SnapshotKeyPrefix = "k_cp_"
+
 // SnapshotKey is one API key in the auth snapshot (hash, never plaintext): an
 // identity — who is calling, what it is called, until when — and, since v0.5.0,
 // the limits its owner set on it (ADR-092 §8, T19.17). Every limit is enforced

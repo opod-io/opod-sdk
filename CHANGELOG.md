@@ -11,6 +11,8 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
 - **Auto routes at the door (ADR-092 §8, T19.18).** `DoorRoute` gains `candidates` (`DoorCandidate{alias, upstream,
   model, ca, tools}`), `pick` (`first` | `least-loaded`) and `maxHops`: a door that advertises `door_auto` picks one
   candidate and falls back down the owner's list on an unavailable answer.
+- **`SnapshotKeyPrefix` (`"k_cp_"`)**: the name a leader gives a snapshot key in every record it writes (usage rows,
+  events, the spend snapshot). It was core's private constant; a manager needs it to find its own key in those records.
 
 Patch, by the rule above: additive fields only.
 
