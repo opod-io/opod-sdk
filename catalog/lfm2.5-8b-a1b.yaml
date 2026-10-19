@@ -21,3 +21,10 @@ tags: [moe, edge, reasoning, thinking, on-device, liquid-ai]
 license: lfm-open
 license_url: https://huggingface.co/LiquidAI/LFM2.5-8B-A1B/blob/main/LICENSE
 released: 2025-11-04
+architecture:   # LiquidAI/LFM2.5-8B-A1B config.json (lfm2_moe)
+  layers: 24
+  heads: 32
+  kv_heads: 8
+  head_dim: 64          # hidden_size 2048 / 32 heads
+  experts: 32
+  state_layers: 18      # layer_types: 18 conv (short convolution, conv_L_cache 3), 6 full_attention

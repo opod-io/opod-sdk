@@ -2,6 +2,15 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## Unreleased (for v0.4.4)
+
+- **The catalog records how a model keeps its KV cache (T23.9).** `Architecture` gains, all optional and additive:
+  `kv_lora_rank` and `qk_rope_head_dim` (multi-head latent attention: one latent per token per layer),
+  `sliding_window` and `sliding_layers` (layers that keep only a window of tokens), and `state_layers` and
+  `state_bytes` (hybrid layers with a fixed state per sequence — SSM, linear attention, short convolution). The
+  `2 × layers × kv_heads × head_dim` formula is too high for each of these. Filled for gpt-oss-20b, gpt-oss-120b
+  and LFM2.5-8B-A1B from their `config.json`.
+
 ## v0.4.3 (2026-10-17)
 
 - **Per-key limits return, enforced in memory (ADR-092 §8, T19.17).** `SnapshotKey` gains `rpmLimit`, `tpmLimit`,

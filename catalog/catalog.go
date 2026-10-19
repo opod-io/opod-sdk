@@ -99,6 +99,28 @@ type Architecture struct {
 	// recorded, and a reader assumes 128 (most architectures; Qwen2.5-0.5B's
 	// is 64, which made that assumption 1.9× too high).
 	HeadDim int `yaml:"head_dim,omitempty" json:"head_dim,omitempty"`
+
+	// The attention layout, when it is not every layer keeping K and V for every
+	// token (PLAN T23.9). A reader sizing a KV cache with the formula above
+	// would be wrong for each of these, and too high: 0 = not this kind.
+	//
+	// KVLoRARank and QKRopeHeadDim: multi-head latent attention (MLA,
+	// DeepSeek-V2/V3 style). A layer keeps ONE compressed latent per token,
+	// kv_lora_rank + qk_rope_head_dim elements, for all of its heads.
+	KVLoRARank    int `yaml:"kv_lora_rank,omitempty"     json:"kv_lora_rank,omitempty"`
+	QKRopeHeadDim int `yaml:"qk_rope_head_dim,omitempty" json:"qk_rope_head_dim,omitempty"`
+	// SlidingWindow and SlidingLayers: this many layers attend to the last
+	// sliding_window tokens only, and keep no more (gpt-oss: 12 of 24 at 128);
+	// the other layers keep the whole context.
+	SlidingWindow int `yaml:"sliding_window,omitempty" json:"sliding_window,omitempty"`
+	SlidingLayers int `yaml:"sliding_layers,omitempty" json:"sliding_layers,omitempty"`
+	// StateLayers and StateBytes: hybrid models whose other layers carry a
+	// fixed state per sequence instead of a cache per token — SSM, linear
+	// attention or short convolution (LFM2: 18 of 24). StateBytes is that state
+	// for all of them, one sequence, at 16-bit; 0 = not recorded (small, and
+	// not counted).
+	StateLayers int   `yaml:"state_layers,omitempty" json:"state_layers,omitempty"`
+	StateBytes  int64 `yaml:"state_bytes,omitempty"  json:"state_bytes,omitempty"`
 }
 
 // Hardware is the entry's stated minimum.
