@@ -117,8 +117,8 @@ type Architecture struct {
 	// StateLayers and StateBytes: hybrid models whose other layers carry a
 	// fixed state per sequence instead of a cache per token — SSM, linear
 	// attention or short convolution (LFM2: 18 of 24). StateBytes is that state
-	// for all of them, one sequence, at 16-bit; 0 = not recorded (small, and
-	// not counted).
+	// for all of them, one sequence, as the engine keeps it (llama.cpp: f32);
+	// 0 = not recorded (small, and not counted).
 	StateLayers int   `yaml:"state_layers,omitempty" json:"state_layers,omitempty"`
 	StateBytes  int64 `yaml:"state_bytes,omitempty"  json:"state_bytes,omitempty"`
 }

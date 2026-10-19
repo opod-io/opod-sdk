@@ -28,3 +28,4 @@ architecture:   # LiquidAI/LFM2.5-8B-A1B config.json (lfm2_moe)
   head_dim: 64          # hidden_size 2048 / 32 heads
   experts: 32
   state_layers: 18      # layer_types: 18 conv (short convolution, conv_L_cache 3), 6 full_attention
+  state_bytes: 294912   # 18 × (conv_L_cache − 1) × 2048 × 4 B; llama.cpp b11028 measured it: "llama_memory_recurrent: size = 0.28 MiB"
