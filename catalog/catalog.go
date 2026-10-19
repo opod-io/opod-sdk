@@ -109,6 +109,12 @@ type Architecture struct {
 	// kv_lora_rank + qk_rope_head_dim elements, for all of its heads.
 	KVLoRARank    int `yaml:"kv_lora_rank,omitempty"     json:"kv_lora_rank,omitempty"`
 	QKRopeHeadDim int `yaml:"qk_rope_head_dim,omitempty" json:"qk_rope_head_dim,omitempty"`
+	// QKNopeHeadDim and VHeadDim: the per-head K and V an MLA model's attention
+	// expands to. Whether an engine keeps the latent or these is the engine's
+	// choice: llama.cpp (build 11028) kept K (qk_nope + qk_rope) and V per head
+	// for DeepSeek-V2-Lite — 8,640 MiB at 32,768 tokens, where the latent is 972.
+	QKNopeHeadDim int `yaml:"qk_nope_head_dim,omitempty" json:"qk_nope_head_dim,omitempty"`
+	VHeadDim      int `yaml:"v_head_dim,omitempty"       json:"v_head_dim,omitempty"`
 	// SlidingWindow and SlidingLayers: this many layers attend to the last
 	// sliding_window tokens only, and keep no more (gpt-oss: 12 of 24 at 128);
 	// the other layers keep the whole context.

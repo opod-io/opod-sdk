@@ -6,6 +6,7 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
 
 - **The catalog records how a model keeps its KV cache (T23.9).** `Architecture` gains, all optional and additive:
   `kv_lora_rank` and `qk_rope_head_dim` (multi-head latent attention: one latent per token per layer),
+  `qk_nope_head_dim` and `v_head_dim` (the per-head K and V an engine may keep instead of the latent — llama.cpp does),
   `sliding_window` and `sliding_layers` (layers that keep only a window of tokens), and `state_layers` and
   `state_bytes` (hybrid layers with a fixed state per sequence — SSM, linear attention, short convolution). The
   `2 × layers × kv_heads × head_dim` formula is too high for each of these. Filled for gpt-oss-20b, gpt-oss-120b
