@@ -44,11 +44,14 @@ const (
 // every row has a constant (held by a test).
 const (
 	// leader
-	EnvPlanFile         = "OPOD_PLAN_FILE"
-	EnvAuthFile         = "OPOD_AUTH_FILE"
-	EnvPolicyFile       = "OPOD_POLICY_FILE"
-	EnvCoordinatorNode  = "OPOD_COORDINATOR_NODE"
-	EnvOTLPLogsEndpoint = "OPOD_OTLP_LOGS_ENDPOINT"
+	EnvPlanFile           = "OPOD_PLAN_FILE"
+	EnvAuthFile           = "OPOD_AUTH_FILE"
+	EnvPolicyFile         = "OPOD_POLICY_FILE"
+	EnvCoordinatorNode    = "OPOD_COORDINATOR_NODE"
+	EnvOTLPLogsEndpoint   = "OPOD_OTLP_LOGS_ENDPOINT"
+	EnvVertex             = "OPOD_VERTEX"
+	EnvVertexPredictRoute = "AIP_PREDICT_ROUTE"
+	EnvVertexHealthRoute  = "AIP_HEALTH_ROUTE"
 	// worker
 	EnvAccelerator   = "OPOD_ACCELERATOR"
 	EnvEngineFlags   = "OPOD_ENGINE_FLAGS"
@@ -114,6 +117,9 @@ var envTable = []EnvVar{
 	{Name: EnvPolicyFile, Side: SideLeader, Since: "policy_file", Doc: `the mounted policy snapshot: routing, logging, guardrails (default /etc/opod-auth/policy.json; "off" = no watcher)`},
 	{Name: EnvCoordinatorNode, Side: SideLeader, Since: "shards", Doc: `pin the llama.cpp RPC coordinator to a node id ("local" = the leader itself)`},
 	{Name: EnvOTLPLogsEndpoint, Side: SideLeader, Since: "otlp_logs", Doc: `OTLP/HTTP collector for the leader's own log records (URL or host:port); stderr keeps working, the queue is bounded and never blocks. Empty = off`},
+	{Name: EnvVertex, Side: SideLeader, Since: "vertex", Doc: `1 = also serve a Vertex AI custom container: POST AIP_PREDICT_ROUTE ({instances, parameters} → {predictions}, or a chat body passed through) and GET AIP_HEALTH_ROUTE. Vertex's IAM authenticates the caller, so these routes take no key; usage rows say protocol vertex`},
+	{Name: EnvVertexPredictRoute, Side: SideLeader, Since: "vertex", Doc: `the predict route Vertex sets on its container; default /v1/vertex:predict`},
+	{Name: EnvVertexHealthRoute, Side: SideLeader, Since: "vertex", Doc: `the health route Vertex sets on its container; default /v1/vertex/health`},
 	// worker
 	{Name: EnvAccelerator, Side: SideWorker, Doc: `the vendor the manager placed the worker on (nvidia | amd | intel | tt | none); unset = what the worker detects`},
 	{Name: EnvEngineFlags, Side: SideWorker, Doc: `JSON map of engine flags from the plan (tp, max_model_len, ctx, ngl, …)`},
