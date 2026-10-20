@@ -449,6 +449,24 @@ type EngineLoad struct {
 	TokensPerSec float64 `json:"tokens_per_s"`   // generated tokens per second since the previous sample
 	PrefixHitPct float64 `json:"prefix_hit_pct"` // prefix-cache hit rate, 0–100 (0 when the engine does not report it)
 	SampledAt    int64   `json:"sampled_at"`     // unix seconds
+	// What the engine itself says it allocated and did (PLAN T23.2, feature
+	// "kv_readback"), so a manager can set the KV pool it PLANNED beside the
+	// one the engine really built. Each is read from the engine's own report —
+	// never derived from the launch line — and nil means the engine does not
+	// say: an absent key is never a zero.
+	//
+	// KVCapacityTokens is the KV pool in tokens (vLLM: num_gpu_blocks ×
+	// block_size; SGLang: max_total_num_tokens; llama.cpp: the slots' context
+	// summed when each slot has its own partition, the one context when they
+	// share a unified pool). KVUsedTokens is the part of it in use, from an
+	// engine that counts it (SGLang). PreemptionsTotal counts requests the
+	// engine evicted from a running batch to make room — vLLM's preemptions,
+	// SGLang's retractions — and EvictionsTotal counts cached KV blocks it
+	// dropped; both are counters since the engine started.
+	KVCapacityTokens *int64 `json:"kv_capacity_tokens,omitempty"`
+	KVUsedTokens     *int64 `json:"kv_used_tokens,omitempty"`
+	PreemptionsTotal *int64 `json:"preemptions_total,omitempty"`
+	EvictionsTotal   *int64 `json:"evictions_total,omitempty"`
 }
 
 // ---- leader → worker: models ----

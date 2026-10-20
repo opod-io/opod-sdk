@@ -84,6 +84,16 @@ type Load struct {
 	// EngineIssue is the worst one's own last word, for a human.
 	EnginesUnhealthy int    `json:"engines_unhealthy,omitempty"`
 	EngineIssue      string `json:"engine_issue,omitempty"`
+	// What the engines themselves say they allocated (PLAN T23.2, feature
+	// "kv_readback"): the sum over the samples counted in Reporting — a
+	// worker's engine, or a gang's coordinator, which holds the whole gang's
+	// pool — of the same fields of nodeapi.EngineLoad. A total sums only the samples that state it, and is
+	// absent when none does: never a zero for "unknown". A worker's own
+	// figures are on GET /admin/v1/nodes (its `load`).
+	KVCapacityTokens *int64 `json:"kv_capacity_tokens,omitempty"`
+	KVUsedTokens     *int64 `json:"kv_used_tokens,omitempty"`
+	PreemptionsTotal *int64 `json:"preemptions_total,omitempty"`
+	EvictionsTotal   *int64 `json:"evictions_total,omitempty"`
 }
 
 // UsageData is one usage fact: a request the leader served.
@@ -237,6 +247,24 @@ type PolicySnapshot struct {
 	// Admission says what a saturated endpoint does with the next request
 	// (ADR-082). The zero value is the old behaviour: shed at once.
 	Admission PolicyAdmission `json:"admission,omitzero"`
+	// Wake bounds the leader's own request wake (feature "request_wake").
+	// The zero value is the old behaviour: any sleeping worker may be resumed.
+	Wake PolicyWake `json:"wake,omitzero"`
+}
+
+// PolicyWake is what a manager tells a leader about resuming sleeping workers
+// on the request path (feature "wake_no_resume", PLAN T11.31).
+type PolicyWake struct {
+	// NoResumeInPlace names sleeping workers, by the node id they register
+	// with, that the leader must NOT resume for a request: the memory such a
+	// worker would wake into is no longer its own — a manager gave its card to
+	// another workload while it slept. A request that finds only such sleepers
+	// is held by the admission hold (PolicyAdmission.HoldMs) while the manager
+	// moves or re-places the worker, and is served when a worker can take it,
+	// or answered 503 + Retry-After when the hold ends. A worker the manager
+	// itself resumes, or that wakes on its own, serves as usual: the mark stops
+	// only the leader's resume. Empty = every sleeper may be resumed in place.
+	NoResumeInPlace []string `json:"noResumeInPlace,omitempty"`
 }
 
 // PolicyAuth is the endpoint owner's choice between availability and
