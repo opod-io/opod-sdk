@@ -2,6 +2,26 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## Unreleased (after v0.4.4)
+
+- **The engines report what they really allocated (T23.2, feature `kv_readback`).** `nodeapi.EngineLoad` gains `kv_capacity_tokens` (the KV
+  pool in tokens), `kv_used_tokens`, `preemptions_total` and `evictions_total` (counters since the engine started), and
+  `adminapi.Load` gains the same four as sums over the reporting samples. All are pointers with `omitempty`: absent means
+  the engine does not say, never zero.
+- **`OPOD_CARD_MIB` (T23.3, `adminapi.EnvCardMiB`, feature `card_mib`).** The card's memory as a manager measured it; a
+  worker turns its VRAM budget into the engine's own memory knob against it instead of asking nvidia-smi, which AMD and
+  Intel hosts do not have.
+- **`PolicySnapshot.Wake.NoResumeInPlace` (T11.31, feature `wake_no_resume`).** Node ids of sleeping workers a leader
+  must not resume for a request, because a manager gave their card to another workload while they slept; a request
+  that finds only such sleepers is held by the admission hold instead.
+- **`catalog.Entry.ToolParser` (`tool_parser`, T19.25; a leader that starts the parser advertises `tool_parsers`).** Per engine id, the tool-call parser vLLM or SGLang needs for
+  the model. Filled for Qwen2.5-Coder 14B/32B, Qwen3 8B/14B/30B, Qwen3-VL 8B/32B (vLLM `hermes`, SGLang `qwen25`),
+  Qwen3-Coder 30B (`qwen3_coder` on both), Llama 3.1 8B (`llama3_json` / `llama3`), gpt-oss 20B/120B (`openai` /
+  `gpt-oss`) and Gemma 4 12B/26B/31B (`gemma4` on both); names checked against the parser registries of vLLM v0.27.1
+  and SGLang v0.5.21.
+
+Patch, by the rule above: every change is additive and omitted when unset.
+
 ## Unreleased (for v0.4.4)
 
 - **The catalog records how a model keeps its KV cache (T23.9).** `Architecture` gains, all optional and additive:
