@@ -2,7 +2,7 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
-## Unreleased (after v0.4.4)
+## Unreleased (for v0.4.4)
 
 - **The engines report what they really allocated (T23.2, feature `kv_readback`).** `nodeapi.EngineLoad` gains `kv_capacity_tokens` (the KV
   pool in tokens), `kv_used_tokens`, `preemptions_total` and `evictions_total` (counters since the engine started), and
@@ -19,10 +19,6 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
   Qwen3-Coder 30B (`qwen3_coder` on both), Llama 3.1 8B (`llama3_json` / `llama3`), gpt-oss 20B/120B (`openai` /
   `gpt-oss`) and Gemma 4 12B/26B/31B (`gemma4` on both); names checked against the parser registries of vLLM v0.27.1
   and SGLang v0.5.21.
-
-Patch, by the rule above: every change is additive and omitted when unset.
-
-## Unreleased (for v0.4.4)
 
 - **The catalog records how a model keeps its KV cache (T23.9).** `Architecture` gains, all optional and additive:
   `kv_lora_rank` and `qk_rope_head_dim` (multi-head latent attention: one latent per token per layer),
