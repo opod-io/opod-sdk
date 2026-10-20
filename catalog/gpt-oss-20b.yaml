@@ -8,6 +8,9 @@ quant: q4_k_m
 context_window: 131072
 capabilities: [chat, reasoning, tools]
 recommended_engines: [ollama, vllm, llamacpp]
+tool_parser:
+  vllm: openai
+  sglang: gpt-oss
 hardware:
   min_ram_gb: 16
 tags: [reasoning, thinking, small, openai]

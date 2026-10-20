@@ -8,6 +8,9 @@ quant: q4_k_m
 context_window: 262144
 capabilities: [chat, tools, vision]
 recommended_engines: [ollama, vllm, llamacpp]
+tool_parser:
+  vllm: gemma4
+  sglang: gemma4
 hardware:
   min_ram_gb: 32
 tags: [large, multimodal, google, restricted-license]

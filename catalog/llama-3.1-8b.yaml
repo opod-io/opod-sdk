@@ -10,6 +10,9 @@ quant: bf16
 context_window: 131072
 capabilities: [chat, tools]
 recommended_engines: [vllm]
+tool_parser:
+  vllm: llama3_json
+  sglang: llama3
 hardware:
   min_ram_gb: 32
   min_vram_gb: 20

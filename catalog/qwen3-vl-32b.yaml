@@ -8,6 +8,9 @@ quant: q4_k_m
 context_window: 131072
 capabilities: [chat, tools, vision]
 recommended_engines: [ollama, vllm, llamacpp]
+tool_parser:
+  vllm: hermes
+  sglang: qwen25
 hardware:
   min_ram_gb: 32
 tags: [vision, large, qwen, apache-2.0]

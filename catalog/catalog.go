@@ -56,6 +56,15 @@ type Entry struct {
 	// parallel divides the heads, pipeline parallel the layers); zero fields
 	// = unknown, which warns and never refuses.
 	Architecture Architecture `yaml:"architecture,omitempty" json:"architecture,omitempty"`
+	// ToolParser names, per engine id, the parser that engine needs to turn
+	// this model's tool-call text into `tool_calls` ({vllm: hermes, sglang:
+	// qwen25}): vLLM and SGLang return a tool call as plain text unless they
+	// are started with one, and the two spell the same family differently.
+	// Only meaningful on a model with the `tools` capability. An engine with
+	// no key = the parser is not known for it, and the engine is started with
+	// none; engines that parse tool calls on their own (llama.cpp, Ollama)
+	// need no key.
+	ToolParser map[string]string `yaml:"tool_parser,omitempty" json:"tool_parser,omitempty"`
 
 	License    string `yaml:"license,omitempty"     json:"license,omitempty"`
 	LicenseURL string `yaml:"license_url,omitempty" json:"license_url,omitempty"`
