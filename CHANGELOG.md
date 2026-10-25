@@ -2,6 +2,12 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.7
+
+- **`adminapi.Load.TierGhost` (T26.14, feature `tier_ghost`).** What a host KV tier would have served, measured from the
+  engines' own cache events: blocks computed, and evicted blocks computed again bucketed by eviction depth. A manager
+  turns it into a tier size and an expected tier hit rate without guessing.
+
 ## v0.4.6
 
 - **`adminapi.EngineOverheadMiB(engine, vendor)` and `OPOD_ENGINE_OVERHEAD_MIB` (T23.3, feature `engine_overhead`).** What an

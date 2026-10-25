@@ -104,6 +104,31 @@ type Load struct {
 	TierStoreBytesTotal    *int64   `json:"tier_store_bytes_total,omitempty"`
 	TierUsedPct            *float64 `json:"tier_used_pct,omitempty"`
 	TierAllocFailuresTotal *int64   `json:"tier_alloc_failures_total,omitempty"`
+	// TierGhost is what a host KV tier WOULD have served, measured from the
+	// engines' own cache events (PLAN T26.14, feature "tier_ghost"): the
+	// leader remembers every block a worker's engine evicted, and when the
+	// engine stores the same block again it had to compute it again — a tier
+	// holding at least that many evicted blocks would have handed it back.
+	// Absent when no worker publishes cache events.
+	TierGhost *TierGhost `json:"tier_ghost,omitempty"`
+}
+
+// TierGhost counts, since the reporting workers started, the blocks their
+// engines computed and the evicted blocks they computed again, by eviction
+// depth. Buckets ascend; a returned block is counted once, in the smallest
+// bucket whose MaxDepthBlocks covers the evictions on its worker between its
+// eviction and its return. A tier of T blocks would have served the returns of
+// every bucket whose MaxDepthBlocks ≤ T.
+type TierGhost struct {
+	BlockSize    int           `json:"block_size"`
+	StoredBlocks int64         `json:"stored_blocks"`
+	Returns      []GhostBucket `json:"returns"`
+}
+
+// GhostBucket is one depth bucket of TierGhost.Returns.
+type GhostBucket struct {
+	MaxDepthBlocks int64 `json:"max_depth_blocks"`
+	Blocks         int64 `json:"blocks"`
 }
 
 // UsageData is one usage fact: a request the leader served.
