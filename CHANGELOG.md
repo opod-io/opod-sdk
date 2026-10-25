@@ -2,7 +2,20 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
-## Unreleased (for v0.4.4)
+## v0.4.5
+
+- **TensorRT-LLM tool-call parsers in the catalog (T27.8).** `tool_parser` gains `trtllm` (trtllm-serve's `--tool_parser`,
+  release 1.2.1): `qwen3` for the Qwen entries whose vLLM parser is `hermes` (Qwen2.5-Coder 14B/32B, Qwen3 8B/14B/30B,
+  Qwen3-VL 8B/32B — the parser reads the same `<tool_call>{"name", "arguments"}</tool_call>` form) and `qwen3_coder`
+  for Qwen3-Coder 30B. Llama 3.1, gpt-oss and Gemma 4 have no TensorRT-LLM parser on that release and name none.
+- **The engine's host KV tier on the heartbeat (T26.4).** `nodeapi.EngineLoad` gains `tier_hit_tokens_total`,
+  `tier_query_tokens_total`, `tier_load_bytes_total`, `tier_store_bytes_total`, `tier_used_pct` and
+  `tier_alloc_failures_total`. All are pointers with `omitempty`: absent means the engine does not say, never zero.
+- **`catalog.Entry.TrainedContext` (`trained_context`, T23.13).** The window the weights were trained for, when
+  `context_window` is reached only with rope scaling (YaRN) the engine must be told to apply. Set for Qwen3 8B and 14B
+  (40 960, from each model's `config.json`; 131 072 needs YaRN). 0 = `context_window` is the trained window.
+
+## v0.4.4
 
 - **The engines report what they really allocated (T23.2, feature `kv_readback`).** `nodeapi.EngineLoad` gains `kv_capacity_tokens` (the KV
   pool in tokens), `kv_used_tokens`, `preemptions_total` and `evictions_total` (counters since the engine started), and

@@ -47,6 +47,12 @@ type Entry struct {
 	SizeBytes          int64    `yaml:"size_bytes"          json:"size_bytes"`
 	Quant              string   `yaml:"quant"               json:"quant"`
 	ContextWindow      int      `yaml:"context_window"      json:"context_window"`
+	// TrainedContext is the window the weights were trained for, when
+	// ContextWindow is reached only with rope scaling (YaRN) the engine must
+	// be told to apply; an engine started without it serves at most this many
+	// tokens (llama.cpp caps a slot at the GGUF's n_ctx_train, vLLM at the
+	// config's max_position_embeddings). 0 = ContextWindow is the trained one.
+	TrainedContext int `yaml:"trained_context,omitempty" json:"trained_context,omitempty"`
 	Capabilities       []string `yaml:"capabilities"        json:"capabilities"`
 	RecommendedEngines []string `yaml:"recommended_engines" json:"recommended_engines"`
 	Hardware           Hardware `yaml:"hardware"            json:"hardware"`
@@ -58,8 +64,9 @@ type Entry struct {
 	Architecture Architecture `yaml:"architecture,omitempty" json:"architecture,omitempty"`
 	// ToolParser names, per engine id, the parser that engine needs to turn
 	// this model's tool-call text into `tool_calls` ({vllm: hermes, sglang:
-	// qwen25}): vLLM and SGLang return a tool call as plain text unless they
-	// are started with one, and the two spell the same family differently.
+	// qwen25, trtllm: qwen3}): vLLM, SGLang and TensorRT-LLM return a tool
+	// call as plain text unless they are started with one, and each spells
+	// the same family differently.
 	// Only meaningful on a model with the `tools` capability. An engine with
 	// no key = the parser is not known for it, and the engine is started with
 	// none; engines that parse tool calls on their own (llama.cpp, Ollama)

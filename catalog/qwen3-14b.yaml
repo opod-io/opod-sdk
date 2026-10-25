@@ -6,11 +6,13 @@ source:
 size_bytes: 9000000000
 quant: q4_k_m
 context_window: 131072
+trained_context: 40960
 capabilities: [chat, tools]
 recommended_engines: [ollama, vllm, mlx, llamacpp]
 tool_parser:
   vllm: hermes
   sglang: qwen25
+  trtllm: qwen3
 hardware:
   min_ram_gb: 16
 tags: [chat, general, capable]

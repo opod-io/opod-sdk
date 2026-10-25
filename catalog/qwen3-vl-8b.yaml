@@ -11,6 +11,7 @@ recommended_engines: [ollama, vllm, llamacpp]
 tool_parser:
   vllm: hermes
   sglang: qwen25
+  trtllm: qwen3
 hardware:
   min_ram_gb: 10
 tags: [vision, small, qwen, apache-2.0]

@@ -11,6 +11,7 @@ recommended_engines: [ollama, vllm, mlx, llamacpp]
 tool_parser:
   vllm: hermes
   sglang: qwen25
+  trtllm: qwen3
 hardware:
   min_ram_gb: 32
 tags: [coding, agent]

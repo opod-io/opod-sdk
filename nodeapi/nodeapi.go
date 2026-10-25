@@ -467,6 +467,20 @@ type EngineLoad struct {
 	KVUsedTokens     *int64 `json:"kv_used_tokens,omitempty"`
 	PreemptionsTotal *int64 `json:"preemptions_total,omitempty"`
 	EvictionsTotal   *int64 `json:"evictions_total,omitempty"`
+	// The engine's host-memory KV tier, when it keeps one (PLAN T26.4), as the
+	// engine reports it; nil = the engine does not say, never zero. Counters
+	// are since the engine started. TierHitTokensTotal is prompt tokens served
+	// from the tier and TierQueryTokensTotal the tokens looked up in it (vLLM:
+	// external_prefix_cache_hits / _queries), so their ratio over a window is
+	// the tier's hit rate. TierLoadBytesTotal and TierStoreBytesTotal are the
+	// bytes moved from and into the tier, TierUsedPct its fill (0–100), and
+	// TierAllocFailuresTotal the stores it refused for want of room.
+	TierHitTokensTotal     *int64   `json:"tier_hit_tokens_total,omitempty"`
+	TierQueryTokensTotal   *int64   `json:"tier_query_tokens_total,omitempty"`
+	TierLoadBytesTotal     *int64   `json:"tier_load_bytes_total,omitempty"`
+	TierStoreBytesTotal    *int64   `json:"tier_store_bytes_total,omitempty"`
+	TierUsedPct            *float64 `json:"tier_used_pct,omitempty"`
+	TierAllocFailuresTotal *int64   `json:"tier_alloc_failures_total,omitempty"`
 }
 
 // ---- leader → worker: models ----
