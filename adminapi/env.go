@@ -66,6 +66,7 @@ const (
 	EnvLeaderCA      = "OPOD_LEADER_CA"
 	EnvVRAMBudgetGB  = "OPOD_VRAM_BUDGET_GB"
 	EnvCardMiB       = "OPOD_CARD_MIB"
+	EnvOverheadMiB   = "OPOD_ENGINE_OVERHEAD_MIB"
 	EnvGPUIndex      = "OPOD_GPU_INDEX"
 	EnvLoadModel     = "OPOD_LOAD_MODEL"
 	EnvLoadRepo      = "OPOD_LOAD_REPO"
@@ -135,6 +136,7 @@ var envTable = []EnvVar{
 	{Name: EnvLeaderCA, Side: SideWorker, Since: "tls_listener", Doc: `PEM certificate the worker trusts for a TLS leader (exactly that one)`},
 	{Name: EnvVRAMBudgetGB, Side: SideWorker, Since: "vram_budget", Doc: `the slice of the card this worker may use (shared placement); read by the engine launch`},
 	{Name: EnvCardMiB, Side: SideWorker, Since: "card_mib", Doc: `the card's memory in MiB, as the manager measured it: the engine launch turns OPOD_VRAM_BUDGET_GB into the engine's own memory knob against it. Unset = nvidia-smi is asked, and with no answer the budget is not applied (hosts without nvidia-smi: AMD, Intel)`},
+	{Name: EnvOverheadMiB, Side: SideWorker, Since: "engine_overhead", Doc: `what the engine process holds on its card outside the pool its memory fraction bounds, in MiB, as the manager reads it from EngineOverheadMiB for the engine on that card's vendor: the launch takes it off OPOD_VRAM_BUDGET_GB before dividing. Unset = EngineOverheadMiB(engine, "")`},
 	{Name: EnvGPUIndex, Side: SideWorker, Since: "vram_budget", Doc: `the device index the worker was pinned to (informational; the engine sees CUDA_VISIBLE_DEVICES & co)`},
 	{Name: EnvLoadModel, Side: SideWorker, Since: "self_load", Doc: `the catalog id this worker loads once its engine answers; repo and file come from the catalog`},
 	{Name: EnvLoadRepo, Side: SideWorker, Since: "self_load", Doc: `override the catalog's repo for that load`},

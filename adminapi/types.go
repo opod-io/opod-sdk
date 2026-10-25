@@ -94,6 +94,16 @@ type Load struct {
 	KVUsedTokens     *int64 `json:"kv_used_tokens,omitempty"`
 	PreemptionsTotal *int64 `json:"preemptions_total,omitempty"`
 	EvictionsTotal   *int64 `json:"evictions_total,omitempty"`
+	// The engines' host-memory KV tiers (PLAN T26.4, feature "kv_tier_load"):
+	// the counters summed over the samples that state them, like the fields
+	// above, and TierUsedPct the fullest tier's fill (a maximum, as KVUsedPct
+	// is). Absent when no sample states it.
+	TierHitTokensTotal     *int64   `json:"tier_hit_tokens_total,omitempty"`
+	TierQueryTokensTotal   *int64   `json:"tier_query_tokens_total,omitempty"`
+	TierLoadBytesTotal     *int64   `json:"tier_load_bytes_total,omitempty"`
+	TierStoreBytesTotal    *int64   `json:"tier_store_bytes_total,omitempty"`
+	TierUsedPct            *float64 `json:"tier_used_pct,omitempty"`
+	TierAllocFailuresTotal *int64   `json:"tier_alloc_failures_total,omitempty"`
 }
 
 // UsageData is one usage fact: a request the leader served.

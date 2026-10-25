@@ -2,6 +2,16 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.6
+
+- **`adminapi.EngineOverheadMiB(engine, vendor)` and `OPOD_ENGINE_OVERHEAD_MIB` (T23.3, feature `engine_overhead`).** What an
+  engine holds on its card outside the pool its memory fraction bounds, per engine and vendor, in one table a manager
+  and a worker both read: vLLM 837 MiB on NVIDIA, 1,103 MiB on AMD (measured), the largest for a vendor not measured
+  yet, 0 (keep your own) for an engine with no figure. A manager passes the figure for the card's vendor in the env.
+- **The engines' host KV tiers summed on `/loadz` (T26.4, feature `kv_tier_load`).** `adminapi.Load` gains the six
+  tier fields of `nodeapi.EngineLoad`: the counters summed over the samples that state them, `tier_used_pct` the
+  fullest tier's fill. Pointers with `omitempty`: absent means no sample says.
+
 ## v0.4.5
 
 - **TensorRT-LLM tool-call parsers in the catalog (T27.8).** `tool_parser` gains `trtllm` (trtllm-serve's `--tool_parser`,
