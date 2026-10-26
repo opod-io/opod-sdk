@@ -481,6 +481,14 @@ type EngineLoad struct {
 	TierStoreBytesTotal    *int64   `json:"tier_store_bytes_total,omitempty"`
 	TierUsedPct            *float64 `json:"tier_used_pct,omitempty"`
 	TierAllocFailuresTotal *int64   `json:"tier_alloc_failures_total,omitempty"`
+	// EngineTTFTP50Ms is the engine's OWN median time to first token over
+	// about the last minute, in milliseconds (PLAN T24.25, feature
+	// "engine_ttft"), read from the engine's histogram (vLLM and SGLang:
+	// time_to_first_token_seconds) — what the engine spent, without the
+	// leader's routing and the network in front of it. nil when the engine
+	// publishes no such histogram (llama.cpp) or served nothing in the window:
+	// never a zero for "not said".
+	EngineTTFTP50Ms *int64 `json:"engine_ttft_p50_ms,omitempty"`
 }
 
 // ---- leader → worker: models ----

@@ -111,7 +111,27 @@ type Load struct {
 	// holding at least that many evicted blocks would have handed it back.
 	// Absent when no worker publishes cache events.
 	TierGhost *TierGhost `json:"tier_ghost,omitempty"`
+	// EngineTTFTP50Ms is the median, over the samples that state it, of the
+	// engines' own nodeapi.EngineLoad.EngineTTFTP50Ms (PLAN T24.25, feature
+	// "engine_ttft"). TTFTP50Ms minus it is what the leader and the network
+	// add. Absent when no sample states it.
+	EngineTTFTP50Ms *int64 `json:"engine_ttft_p50_ms,omitempty"`
+	// AdmissionBound says which bound the leader's admission gate holds the
+	// plan's model to (PLAN T23.11, feature "admission_kv_bound"):
+	// AdmissionBoundSlots when the engines' slot counts are the limit,
+	// AdmissionBoundKV when their KV pools hold fewer requests of the
+	// endpoint's context than they have slots, and the gate queues at that
+	// smaller number. Absent when the leader does not say: no plan model, no
+	// worker can serve, or a worker reports no slot count (admission is then
+	// unbounded).
+	AdmissionBound string `json:"admission_bound,omitempty"`
 }
+
+// The values of Load.AdmissionBound.
+const (
+	AdmissionBoundSlots = "slots"
+	AdmissionBoundKV    = "kv"
+)
 
 // TierGhost counts, since the reporting workers started, the blocks their
 // engines computed and the evicted blocks they computed again, by eviction

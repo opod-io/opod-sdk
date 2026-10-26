@@ -439,3 +439,21 @@ func TestNormalizePCI(t *testing.T) {
 		}
 	}
 }
+
+// engine_ttft_p50_ms (T24.25) is absent when the engine does not say, and a
+// stated value survives the round trip.
+func TestEngineLoadTTFTIsAbsentWhenUnsaid(t *testing.T) {
+	raw, err := json.Marshal(EngineLoad{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(raw), "engine_ttft_p50_ms") {
+		t.Fatalf("an unsaid engine TTFT is on the wire: %s", raw)
+	}
+	ms := int64(37)
+	raw, _ = json.Marshal(EngineLoad{EngineTTFTP50Ms: &ms})
+	var back EngineLoad
+	if err := json.Unmarshal(raw, &back); err != nil || back.EngineTTFTP50Ms == nil || *back.EngineTTFTP50Ms != 37 {
+		t.Fatalf("round trip: %s → %+v (%v)", raw, back, err)
+	}
+}

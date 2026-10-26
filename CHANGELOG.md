@@ -2,6 +2,16 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.8
+
+- **`adminapi.Load.AdmissionBound` (`admission_bound`, T23.11, feature `admission_kv_bound`).** Which bound the leader's
+  admission gate holds the model to: `slots` (the engines' slot counts) or `kv` (their KV pools hold fewer requests of
+  the endpoint's context than they have slots). Constants `AdmissionBoundSlots` / `AdmissionBoundKV`; absent = not said.
+- **The engine's own time to first token (T24.25, feature `engine_ttft`).** `nodeapi.EngineLoad.EngineTTFTP50Ms`
+  (`engine_ttft_p50_ms`): the engine's median over about the last minute, from its own histogram (vLLM, SGLang);
+  `adminapi.Load.EngineTTFTP50Ms` is the median over the reporting samples, so `ttft_p50_ms` minus it is what the leader
+  and the network add. Pointers with `omitempty`: absent means not said, never zero.
+
 ## v0.4.7
 
 - **`adminapi.Load.TierGhost` (T26.14, feature `tier_ghost`).** What a host KV tier would have served, measured from the
