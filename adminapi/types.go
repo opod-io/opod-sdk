@@ -464,6 +464,15 @@ type PolicyRouting struct {
 	// never a lot of it. 0 = off, and then — or for a worker whose engine
 	// publishes no cache events — PrefixAffinity's pin is what decides.
 	PrefixBlockWeight float64 `json:"prefixBlockWeight,omitempty"`
+	// CacheIsolation (feature "cache_salt") says whose requests may share a
+	// prefix cache: "team" (every key of one team shares, and teams never
+	// do — a key with no team is its own team), "key" (each key alone) or
+	// "none" (every caller shares). The leader puts a `cache_salt` on each
+	// request to an engine that keys its cache by one (vLLM, SGLang,
+	// TensorRT-LLM): an HMAC of the caller's team or key id, never the id
+	// itself, and its prefix pins carry the same salt. An engine with no salt
+	// shares its cache whatever this says. Empty = "team".
+	CacheIsolation string `json:"cacheIsolation,omitempty"`
 	// Revisions splits traffic between plan revisions (feature
 	// "routing_weights", ROADMAP R15.17): each worker registers the plan
 	// revision it was started for, and the picker chooses a revision group by
@@ -477,6 +486,13 @@ type PolicyRouting struct {
 	// black-hole its share of the traffic.
 	Revisions []RevisionWeight `json:"revisions,omitempty"`
 }
+
+// PolicyRouting.CacheIsolation values. The empty string is CacheIsolationTeam.
+const (
+	CacheIsolationNone = "none"
+	CacheIsolationTeam = "team"
+	CacheIsolationKey  = "key"
+)
 
 // RevisionWeight is one plan revision's share of an endpoint's traffic
 // (R15.17). Revision matches what a worker registers as its plan revision.

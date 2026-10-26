@@ -2,6 +2,13 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.9
+
+- **`adminapi.PolicyRouting.CacheIsolation` (T26.8, feature `cache_salt`).** `none | team | key`, empty = `team`: whose
+  requests may share an endpoint's prefix cache. The leader salts each request to an engine that takes a `cache_salt`
+  with an HMAC of the caller's team or key id, and its prefix pins with the same salt. Constants
+  `CacheIsolationNone`, `CacheIsolationTeam`, `CacheIsolationKey`.
+
 ## v0.4.8
 
 - **`adminapi.Load.AdmissionBound` (`admission_bound`, T23.11, feature `admission_kv_bound`).** Which bound the leader's
