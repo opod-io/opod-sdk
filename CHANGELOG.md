@@ -2,6 +2,12 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.10
+
+- **`EngineOverheadMiB("llamacpp", "nvidia")` = 640 (T27.12).** llama.cpp's cost beyond weights and KV cache, measured
+  at 626 MiB on an RTX 5090; other vendors take it until measured. A manager filling a card with KV slots leaves it
+  free — the 563 MiB a manager assumed left a 32 GB card 0.03 GB short and llama-server died loading its kernels.
+
 ## v0.4.9
 
 - **`adminapi.PolicyRouting.CacheIsolation` (T26.8, feature `cache_salt`).** `none | team | key`, empty = `team`: whose
