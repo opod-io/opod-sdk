@@ -464,6 +464,15 @@ type PolicyRouting struct {
 	// never a lot of it. 0 = off, and then — or for a worker whose engine
 	// publishes no cache events — PrefixAffinity's pin is what decides.
 	PrefixBlockWeight float64 `json:"prefixBlockWeight,omitempty"`
+	// SpeedRank (feature "routing_speed_rank") ranks an unsaturated worker
+	// or gang by its expected time — (load score + 1) × its own measured
+	// seconds per completion token — so on a quiet fleet a fast card takes
+	// the next request rather than the first in placement order. A worker
+	// with fewer than 10 answers takes its peers' median speed, and one pick
+	// in 20 goes to the least-sampled worker so a slow reading can recover.
+	// Saturation and the prefix and sticky pins rank as before. false = off
+	// (the load order alone).
+	SpeedRank bool `json:"speedRank,omitempty"`
 	// CacheIsolation (feature "cache_salt") says whose requests may share a
 	// prefix cache: "team" (every key of one team shares, and teams never
 	// do — a key with no team is its own team), "key" (each key alone) or

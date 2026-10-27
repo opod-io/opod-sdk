@@ -2,6 +2,14 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## v0.4.11
+
+- **`adminapi.PolicyRouting.SpeedRank` (`speedRank`, T28.2, feature `routing_speed_rank`).** On, the leader ranks an
+  unsaturated worker or gang by its expected time — (load score + 1) × its own measured seconds per completion token —
+  so on a quiet fleet a fast card takes the next request. A worker with fewer than 10 answers takes its peers' median;
+  one pick in 20 goes to the least-sampled worker. Saturation and the prefix and sticky pins rank as before. Off by
+  default.
+
 ## v0.4.10
 
 - **`EngineOverheadMiB("llamacpp", "nvidia")` = 640 (T27.12).** llama.cpp's cost beyond weights and KV cache, measured
