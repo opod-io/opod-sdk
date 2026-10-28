@@ -60,6 +60,7 @@ const (
 	EnvKVEvents      = "OPOD_KV_EVENTS"
 	EnvSleepMode     = "OPOD_SLEEP_MODE"
 	EnvWorkerRole    = "OPOD_WORKER_ROLE"
+	EnvDrainSeconds  = "OPOD_DRAIN_SECONDS"
 	EnvPlanRevision  = "OPOD_PLAN_REVISION"
 	EnvAdvertiseAddr = "OPOD_ADVERTISE_ADDR"
 	EnvNodeID        = "OPOD_NODE_ID"
@@ -130,6 +131,7 @@ var envTable = []EnvVar{
 	{Name: EnvKVEvents, Side: SideWorker, Since: "kv_block_events", Doc: `1 = vLLM publishes its prefix-cache events on localhost and the worker reports block hashes on its heartbeat, so the leader can route by what a worker holds`},
 	{Name: EnvSleepMode, Side: SideWorker, Since: "worker_sleep", Doc: `1 = vLLM starts with sleep mode on (the sleep autoscale tier)`},
 	{Name: EnvWorkerRole, Side: SideWorker, Since: "pd_roles", Doc: `prefill | decode for disaggregated serving; unset = a whole worker`},
+	{Name: EnvDrainSeconds, Side: SideWorker, Since: "worker_drain", Doc: `how many seconds a stopping worker lets the requests already running on it finish: it says goodbye at once (no new requests), and its engine stops when nothing is in flight or the bound passes, whichever is first. 0 = stop at once. Unset = 10. A manager gives the pod a grace period longer than this`},
 	{Name: EnvPlanRevision, Side: SideWorker, Since: "routing_weights", Doc: `the plan revision this worker process was started for; the leader routes a share of traffic per revision (R15.17)`},
 	{Name: EnvAdvertiseAddr, Side: SideWorker, Doc: `the host:port the leader should dial (overlay / multi-NIC hosts)`},
 	{Name: EnvNodeID, Side: SideWorker, Doc: `a stable node id across restarts (else node.yaml, else random)`},
