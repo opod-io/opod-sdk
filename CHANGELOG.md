@@ -8,6 +8,9 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
   (ADR-111, ADR-112).** A key is an endpoint access token again: id, name, hash, scope, expiry, class and fair-share
   team. Per-key and per-user limits, quotas and model access are the owner's gateway's job in front of the endpoint
   (LiteLLM). Removing fields is not additive: this needs a minor tag.
+- **Removed: `adminapi.PolicySnapshot.Guardrails` and `adminapi.GuardrailRule` (T32.29, ADR-113).** The leader no
+  longer calls a pre-request guardrail webhook; checking a prompt for PII or injection is the gateway's job. A manager
+  stops writing the `guardrails` key. Breaking for a consumer that set the field, so the next tag is a minor.
 
 ## v0.4.11
 

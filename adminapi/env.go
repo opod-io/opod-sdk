@@ -117,7 +117,7 @@ var envTable = []EnvVar{
 	// leader
 	{Name: EnvPlanFile, Side: SideLeader, Since: "plan_file", Doc: `the mounted plan the leader serves within (default /etc/opod/plan.json; absent = standalone)`},
 	{Name: EnvAuthFile, Side: SideLeader, Since: "auth_file", Doc: `the mounted auth snapshot: keys + requireKeys (default /etc/opod-auth/auth.json; "off" = no watcher)`},
-	{Name: EnvPolicyFile, Side: SideLeader, Since: "policy_file", Doc: `the mounted policy snapshot: routing, logging, guardrails (default /etc/opod-auth/policy.json; "off" = no watcher)`},
+	{Name: EnvPolicyFile, Side: SideLeader, Since: "policy_file", Doc: `the mounted policy snapshot: routing, logging, auth bounds, admission, wake (default /etc/opod-auth/policy.json; "off" = no watcher)`},
 	{Name: EnvCoordinatorNode, Side: SideLeader, Since: "shards", Doc: `pin the llama.cpp RPC coordinator to a node id ("local" = the leader itself)`},
 	{Name: EnvOTLPLogsEndpoint, Side: SideLeader, Since: "otlp_logs", Doc: `OTLP/HTTP collector for the leader's own log records (URL or host:port); stderr keeps working, the queue is bounded and never blocks. Empty = off`},
 	{Name: EnvVertex, Side: SideLeader, Since: "vertex", Doc: `1 = also serve a Vertex AI custom container: POST AIP_PREDICT_ROUTE ({instances, parameters} → {predictions}, or a chat body passed through) and GET AIP_HEALTH_ROUTE. Vertex's IAM authenticates the caller, so these routes take no key; usage rows say protocol vertex`},
