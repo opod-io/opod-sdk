@@ -4,6 +4,10 @@ Versioning rule (README): additive = patch, anything a consumer must change for 
 
 ## Unreleased
 
+- **`OPOD_FETCH_RESULT` and `adminapi.FetchResult` (T32.23).** A worker-side variable: `opod fetch` writes one JSON
+  line there once the weights are in the node cache — the path, and whether the repository publishes a
+  model-transparency signature (`model.sig`): `unsigned`, `unverified` or `unknown`. There is no `verified` state:
+  the fetch does not verify the signature yet, so a manager must never read `unverified` as a pass. Additive.
 - **`SnapshotKey` loses `rpmLimit`, `tpmLimit`, `quotaDailyTokens`, `allowedModels`, `spentToday` and `day`
   (ADR-111, ADR-112).** A key is an endpoint access token again: id, name, hash, scope, expiry, class and fair-share
   team. Per-key and per-user limits, quotas and model access are the owner's gateway's job in front of the endpoint
