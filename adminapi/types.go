@@ -251,15 +251,15 @@ type AuthSnapshot struct {
 
 // SnapshotKeyPrefix is how a leader names a key it learned from the auth
 // snapshot: SnapshotKeyPrefix + SnapshotKey.ID. Every record the leader writes
-// about the key — usage rows, events, the spend snapshot — carries that name,
+// about the key — usage rows, events — carries that name,
 // so a manager strips the prefix to find its own key again.
 const SnapshotKeyPrefix = "k_cp_"
 
-// SnapshotKey is one API key in the auth snapshot (hash, never plaintext): an
-// identity — who is calling, what it is called, until when — and, since v0.5.0,
-// the limits its owner set on it (ADR-092 §8, T19.17). Every limit is enforced
-// in the leader's memory, never by a query on the request path (the reason
-// ADR-077 removed the first version); zero or empty means no limit.
+// SnapshotKey is one endpoint access token in the auth snapshot (hash, never
+// plaintext): who is calling, what it is called, until when, and how its
+// requests rank when the endpoint is full. It carries no limit: per-key and
+// per-user limits, quotas and model access are the owner's gateway's job in
+// front of the endpoint (ADR-111, ADR-112).
 type SnapshotKey struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
@@ -275,20 +275,6 @@ type SnapshotKey struct {
 	// other flows of their class: every key of one team is one flow. Empty =
 	// the key is its own flow.
 	Team string `json:"team,omitempty"`
-	// RPMLimit and TPMLimit bound requests and tokens per minute (a token
-	// bucket per key; a gateway replica enforces its share of the limit).
-	RPMLimit int `json:"rpmLimit,omitempty"`
-	TPMLimit int `json:"tpmLimit,omitempty"`
-	// QuotaDailyTokens bounds the tokens a key may use per UTC day.
-	QuotaDailyTokens int64 `json:"quotaDailyTokens,omitempty"`
-	// AllowedModels, when set, are the only model ids this key may ask for.
-	AllowedModels []string `json:"allowedModels,omitempty"`
-	// SpentToday is the manager's count of the key's tokens on Day (UTC,
-	// "2006-01-02"), so a leader that restarted with an empty memory starts
-	// from it; a leader keeps the larger of it and its own count, and ignores
-	// it on any other day.
-	SpentToday int64  `json:"spentToday,omitempty"`
-	Day        string `json:"day,omitempty"`
 }
 
 // PolicySnapshot is the policy file a manager mounts (OPOD_POLICY_FILE).

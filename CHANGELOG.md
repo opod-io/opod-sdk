@@ -2,6 +2,13 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## Unreleased
+
+- **`SnapshotKey` loses `rpmLimit`, `tpmLimit`, `quotaDailyTokens`, `allowedModels`, `spentToday` and `day`
+  (ADR-111, ADR-112).** A key is an endpoint access token again: id, name, hash, scope, expiry, class and fair-share
+  team. Per-key and per-user limits, quotas and model access are the owner's gateway's job in front of the endpoint
+  (LiteLLM). Removing fields is not additive: this needs a minor tag.
+
 ## v0.4.11
 
 - **`adminapi.PolicyRouting.SpeedRank` (`speedRank`, T28.2, feature `routing_speed_rank`).** On, the leader ranks an
