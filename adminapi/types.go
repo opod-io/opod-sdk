@@ -293,10 +293,9 @@ type SnapshotKey struct {
 
 // PolicySnapshot is the policy file a manager mounts (OPOD_POLICY_FILE).
 type PolicySnapshot struct {
-	Revision   string          `json:"revision"`
-	Routing    PolicyRouting   `json:"routing"`
-	Logging    PolicyLogging   `json:"logging"`
-	Guardrails []GuardrailRule `json:"guardrails"`
+	Revision string        `json:"revision"`
+	Routing  PolicyRouting `json:"routing"`
+	Logging  PolicyLogging `json:"logging"`
 	// Auth bounds how the leader treats its own auth snapshot (ADR-085).
 	Auth PolicyAuth `json:"auth,omitzero"`
 	// Admission says what a saturated endpoint does with the next request
@@ -440,8 +439,8 @@ type PrefixIndex struct {
 	Blocks           int `json:"blocks"`
 }
 
-// PolicyRouting names the fallback target used after the pre-guardrail chain
-// when the leader has no capacity (an OpenAI-compatible base URL).
+// PolicyRouting names the fallback target used when the leader has no
+// capacity (an OpenAI-compatible base URL).
 type PolicyRouting struct {
 	FallbackURL   string `json:"fallbackUrl,omitempty"`
 	FallbackModel string `json:"fallbackModel,omitempty"`
@@ -513,15 +512,4 @@ type RevisionWeight struct {
 // PolicyLogging switches the leader's access log; nil = unchanged.
 type PolicyLogging struct {
 	AccessLog *bool `json:"accessLog,omitempty"`
-}
-
-// GuardrailRule is one webhook guardrail the leader instantiates.
-type GuardrailRule struct {
-	ID        string            `json:"id"`
-	Phase     string            `json:"phase"` // pre | post | logging_only
-	URL       string            `json:"url"`
-	AuthKey   string            `json:"authKey,omitempty"`
-	Headers   map[string]string `json:"headers,omitempty"`
-	FailOpen  bool              `json:"failOpen"`
-	TimeoutMs int               `json:"timeoutMs,omitempty"`
 }

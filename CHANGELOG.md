@@ -2,6 +2,12 @@
 
 Versioning rule (README): additive = patch, anything a consumer must change for = minor.
 
+## Unreleased
+
+- **Removed: `adminapi.PolicySnapshot.Guardrails` and `adminapi.GuardrailRule` (T32.29, ADR-113).** The leader no
+  longer calls a pre-request guardrail webhook; checking a prompt for PII or injection is the gateway's job. A manager
+  stops writing the `guardrails` key. Breaking for a consumer that set the field, so the next tag is a minor.
+
 ## v0.4.11
 
 - **`adminapi.PolicyRouting.SpeedRank` (`speedRank`, T28.2, feature `routing_speed_rank`).** On, the leader ranks an
