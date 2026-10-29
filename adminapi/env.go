@@ -73,6 +73,7 @@ const (
 	EnvLoadModel     = "OPOD_LOAD_MODEL"
 	EnvLoadRepo      = "OPOD_LOAD_REPO"
 	EnvLoadFile      = "OPOD_LOAD_FILE"
+	EnvFetchResult   = "OPOD_FETCH_RESULT"
 	// both
 	EnvCatalogDir           = "OPOD_CATALOG_DIR"
 	EnvCatalogPubKey        = "OPOD_CATALOG_PUBKEY"
@@ -145,6 +146,7 @@ var envTable = []EnvVar{
 	{Name: EnvLoadModel, Side: SideWorker, Since: "self_load", Doc: `the catalog id this worker loads once its engine answers; repo and file come from the catalog`},
 	{Name: EnvLoadRepo, Side: SideWorker, Since: "self_load", Doc: `override the catalog's repo for that load`},
 	{Name: EnvLoadFile, Side: SideWorker, Since: "self_load", Doc: `override the catalog's file (the GGUF within the repo) for that load`},
+	{Name: EnvFetchResult, Side: SideWorker, Since: "v0.5.0", Doc: `a path opod fetch writes its result to once the weights are in the cache: one JSON line (adminapi.FetchResult: the path and the signature check). A manager points it at /dev/termination-log to read the result from the pod's status. Empty = no result file`},
 	// both
 	{Name: EnvCatalogDir, Side: SideBoth, Doc: `a catalog directory that overrides the bundled entries (beaten only by ~/.opod/catalog)`},
 	{Name: EnvCatalogPubKey, Side: SideBoth, Since: "v0.3.0", Doc: `a minisign public key (the base64 line, or a file holding one): a catalog file in a directory that has a <file>.minisig beside it must verify against it, and a signature that does not is always a refusal. The embedded catalog is never checked. Empty = signatures are ignored`},
