@@ -49,6 +49,7 @@ const (
 	EnvPolicyFile         = "OPOD_POLICY_FILE"
 	EnvCoordinatorNode    = "OPOD_COORDINATOR_NODE"
 	EnvOTLPLogsEndpoint   = "OPOD_OTLP_LOGS_ENDPOINT"
+	EnvTraceSampleRatio   = "OPOD_TRACE_SAMPLE_RATIO"
 	EnvVertex             = "OPOD_VERTEX"
 	EnvVertexPredictRoute = "AIP_PREDICT_ROUTE"
 	EnvVertexHealthRoute  = "AIP_HEALTH_ROUTE"
@@ -120,6 +121,7 @@ var envTable = []EnvVar{
 	{Name: EnvPolicyFile, Side: SideLeader, Since: "policy_file", Doc: `the mounted policy snapshot: routing, logging, guardrails (default /etc/opod-auth/policy.json; "off" = no watcher)`},
 	{Name: EnvCoordinatorNode, Side: SideLeader, Since: "shards", Doc: `pin the llama.cpp RPC coordinator to a node id ("local" = the leader itself)`},
 	{Name: EnvOTLPLogsEndpoint, Side: SideLeader, Since: "otlp_logs", Doc: `OTLP/HTTP collector for the leader's own log records (URL or host:port); stderr keeps working, the queue is bounded and never blocks. Empty = off`},
+	{Name: EnvTraceSampleRatio, Side: SideLeader, Since: "trace_sample_ratio", Doc: `the share of the traces the leader starts that it records, from 0 to 1, when OPOD_OTLP_ENDPOINT is set; unset = 1 (every request). A request that arrives with a traceparent follows its caller's sampling decision whatever the ratio. Anything else is an error at start`},
 	{Name: EnvVertex, Side: SideLeader, Since: "vertex", Doc: `1 = also serve a Vertex AI custom container: POST AIP_PREDICT_ROUTE ({instances, parameters} → {predictions}, or a chat body passed through) and GET AIP_HEALTH_ROUTE. Vertex's IAM authenticates the caller, so these routes take no key; usage rows say protocol vertex`},
 	{Name: EnvVertexPredictRoute, Side: SideLeader, Since: "vertex", Doc: `the predict route Vertex sets on its container; default /v1/vertex:predict`},
 	{Name: EnvVertexHealthRoute, Side: SideLeader, Since: "vertex", Doc: `the health route Vertex sets on its container; default /v1/vertex/health`},
